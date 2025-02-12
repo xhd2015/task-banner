@@ -6,11 +6,14 @@ struct BannerView: View {
     @State private var editingTaskId: UUID? = nil
     @State private var editingText: String = ""
     @State private var showOnlyUnfinished: Bool = true
+    @State private var recentlyFinishedTasks: Set<UUID> = []
     @FocusState private var isEditing: Bool
     
     var filteredTasks: [ActiveTask] {
         showOnlyUnfinished ? 
-            taskManager.rootTasks.filter { filterUnfinishedTasks($0) } :
+            taskManager.rootTasks.filter { task in
+                filterUnfinishedTasks(task) || recentlyFinishedTasks.contains(task.id)
+            } :
             taskManager.rootTasks
     }
     
@@ -63,10 +66,9 @@ struct BannerView: View {
     
     // Recursively filter tasks and their subtasks
     private func filterUnfinishedTasks(_ task: ActiveTask) -> Bool {
-        if task.status == .created {
+        if task.status == .created || recentlyFinishedTasks.contains(task.id) {
             return true
         }
-        // If task is done, check if any subtasks are unfinished
         return task.subTasks.contains { filterUnfinishedTasks($0) }
     }
 }
@@ -79,6 +81,7 @@ private struct TaskItemWithSubtasks: View {
     @FocusState.Binding var isEditing: Bool
     @Environment(\.showOnlyUnfinished) private var showOnlyUnfinished
     let indentLevel: Int
+    @State private var recentlyFinishedTasks: Set<UUID> = []
     
     init(task: ActiveTask, editingTaskId: Binding<UUID?>, editingText: Binding<String>, isEditing: FocusState<Bool>.Binding, indentLevel: Int = 0) {
         self.task = task
@@ -90,26 +93,36 @@ private struct TaskItemWithSubtasks: View {
     
     var filteredSubTasks: [ActiveTask] {
         showOnlyUnfinished ? 
-            task.subTasks.filter { filterUnfinishedTasks($0) } :
+            task.subTasks.filter { task in
+                filterUnfinishedTasks(task) || recentlyFinishedTasks.contains(task.id)
+            } :
             task.subTasks
     }
     
     var body: some View {
         VStack(spacing: 0) {
-            BannerItemView(task: task, editingTaskId: $editingTaskId, editingText: $editingText, isEditing: $isEditing, indentLevel: indentLevel)
+            BannerItemView(task: task, 
+                editingTaskId: $editingTaskId, 
+                editingText: $editingText, 
+                isEditing: $isEditing, 
+                indentLevel: indentLevel,
+                recentlyFinishedTasks: $recentlyFinishedTasks)
             
             ForEach(filteredSubTasks) { subTask in
-                TaskItemWithSubtasks(task: subTask, editingTaskId: $editingTaskId, editingText: $editingText, isEditing: $isEditing, indentLevel: indentLevel + 1)
+                TaskItemWithSubtasks(task: subTask, 
+                    editingTaskId: $editingTaskId, 
+                    editingText: $editingText, 
+                    isEditing: $isEditing, 
+                    indentLevel: indentLevel + 1)
             }
         }
     }
     
     // Recursively filter tasks and their subtasks
     private func filterUnfinishedTasks(_ task: ActiveTask) -> Bool {
-        if task.status == .created {
+        if task.status == .created || recentlyFinishedTasks.contains(task.id) {
             return true
         }
-        // If task is done, check if any subtasks are unfinished
         return task.subTasks.contains { filterUnfinishedTasks($0) }
     }
 }
@@ -123,5 +136,18 @@ extension EnvironmentValues {
     var showOnlyUnfinished: Bool {
         get { self[ShowOnlyUnfinishedKey.self] }
         set { self[ShowOnlyUnfinishedKey.self] = newValue }
+    }
+}
+
+extension View {
+    func delayedDisappearance(taskId: UUID, isFinished: Bool, delay: Double = 5.0, onFinished: @escaping (UUID) -> Void) -> some View {
+        self.onChange(of: isFinished) { finished in
+            if finished {
+                onFinished(taskId)
+                DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                    onFinished(taskId)
+                }
+            }
+        }
     }
 } 

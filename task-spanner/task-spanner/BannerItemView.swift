@@ -13,6 +13,23 @@ struct BannerItemView: View {
     @FocusState private var isSubTaskEditing: Bool
     let indentLevel: Int
     
+    @Environment(\.showOnlyUnfinished) private var showOnlyUnfinished
+    @Binding var recentlyFinishedTasks: Set<UUID>
+    
+    init(task: ActiveTask, 
+         editingTaskId: Binding<UUID?>, 
+         editingText: Binding<String>, 
+         isEditing: FocusState<Bool>.Binding, 
+         indentLevel: Int = 0,
+         recentlyFinishedTasks: Binding<Set<UUID>> = .constant([])) {
+        self.task = task
+        self._editingTaskId = editingTaskId
+        self._editingText = editingText
+        self._isEditing = isEditing
+        self.indentLevel = indentLevel
+        self._recentlyFinishedTasks = recentlyFinishedTasks
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Group {
@@ -102,16 +119,16 @@ struct BannerItemView: View {
                 }
                 
                 Button(action: toggleStatus) {
-                    Image(systemName: task.status == .done ? "checkmark.square.fill" : "square")
-                        .foregroundColor(task.status == .done ? .green : .primary)
+                    Image(systemName: task.status == .done || recentlyFinishedTasks.contains(task.id) ? "checkmark.square.fill" : "square")
+                        .foregroundColor(task.status == .done || recentlyFinishedTasks.contains(task.id) ? .green : .primary)
                 }
                 .buttonStyle(.plain)
             }
             
             Text(task.title)
-                .foregroundColor(task.status == .done ? .secondary : .primary)
+                .foregroundColor(task.status == .done || recentlyFinishedTasks.contains(task.id) ? .secondary : .primary)
                 .lineLimit(1)
-                .strikethrough(task.status == .done)
+                .strikethrough(task.status == .done || recentlyFinishedTasks.contains(task.id))
             
             Spacer()
             
@@ -208,6 +225,15 @@ struct BannerItemView: View {
     
     private func toggleStatus() {
         let newStatus: TaskStatus = task.status == .done ? .created : .done
-        taskManager.updateTaskStatus(task, newStatus: newStatus)
+        if newStatus == .done && showOnlyUnfinished {
+            recentlyFinishedTasks.insert(task.id)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                recentlyFinishedTasks.remove(task.id)
+                taskManager.updateTaskStatus(task, newStatus: newStatus)
+            }
+        }else {
+            // directly update status
+            taskManager.updateTaskStatus(task, newStatus: newStatus)
+        }
     }
 } 
