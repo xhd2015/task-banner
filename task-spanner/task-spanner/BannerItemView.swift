@@ -117,6 +117,30 @@ struct BannerItemView: View {
             
             if isHovered {
                 HStack(spacing: 8) {
+                    Group {
+                        let isFirst = task.parentId == nil ? 
+                            taskManager.tasks.first?.id == task.id :
+                            taskManager.tasks.first(where: { $0.id == task.parentId })?.subTasks.first?.id == task.id
+                            
+                        let isLast = task.parentId == nil ?
+                            taskManager.tasks.last?.id == task.id :
+                            taskManager.tasks.first(where: { $0.id == task.parentId })?.subTasks.last?.id == task.id
+                        
+                        Button(action: { taskManager.moveTask(task, direction: .up) }) {
+                            Image(systemName: "arrow.up")
+                                .foregroundColor(isFirst ? .secondary : .primary)
+                        }
+                        .buttonStyle(.borderless)
+                        .disabled(isFirst)
+                        
+                        Button(action: { taskManager.moveTask(task, direction: .down) }) {
+                            Image(systemName: "arrow.down")
+                                .foregroundColor(isLast ? .secondary : .primary)
+                        }
+                        .buttonStyle(.borderless)
+                        .disabled(isLast)
+                    }
+                    
                     Button(action: startEditing) {
                         Image(systemName: "square.and.pencil")
                             .foregroundColor(.primary)

@@ -354,4 +354,46 @@ class TaskManager: ObservableObject, @unchecked Sendable {
         
         return false
     }
+    
+    func moveTask(_ task: ActiveTask, direction: MoveDirection) {
+        if let parentId = task.parentId {
+            // Move within subtasks
+            if let parentIndex = tasks.firstIndex(where: { $0.id == parentId }) {
+                moveSubTask(in: &tasks[parentIndex].subTasks, taskId: task.id, direction: direction)
+                objectWillChange.send()
+            }
+        } else {
+            // Move within root tasks
+            if let index = tasks.firstIndex(where: { $0.id == task.id }) {
+                let newIndex = direction == .up ? index - 1 : index + 1
+                if newIndex >= 0 && newIndex < tasks.count {
+                    tasks.swapAt(index, newIndex)
+                }
+            }
+        }
+    }
+    
+    private func moveSubTask(in subTasks: inout [ActiveTask], taskId: UUID, direction: MoveDirection) -> Bool {
+        if let index = subTasks.firstIndex(where: { $0.id == taskId }) {
+            let newIndex = direction == .up ? index - 1 : index + 1
+            if newIndex >= 0 && newIndex < subTasks.count {
+                subTasks.swapAt(index, newIndex)
+                return true
+            }
+        }
+        
+        // Try to find in deeper levels
+        for i in subTasks.indices {
+            if moveSubTask(in: &subTasks[i].subTasks, taskId: taskId, direction: direction) {
+                return true
+            }
+        }
+        
+        return false
+    }
+    
+    enum MoveDirection {
+        case up
+        case down
+    }
 } 
