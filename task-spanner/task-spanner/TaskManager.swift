@@ -284,4 +284,17 @@ class TaskManager: ObservableObject, @unchecked Sendable {
     var rootTasks: [ActiveTask] {
         tasks.filter { $0.parentId == nil }
     }
+    
+    func exportTasksToJSON() async throws -> Data {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted
+        return try encoder.encode(tasks)
+    }
+    
+    func importTasksFromJSON(_ data: Data) async throws {
+        let decoder = JSONDecoder()
+        let importedTasks = try decoder.decode([ActiveTask].self, from: data)
+        self.tasks = importedTasks
+        try await saveTasksToStorage()
+    }
 } 
