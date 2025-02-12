@@ -31,9 +31,20 @@ struct BannerItemView: View {
                     }
                 }
             
-            Button("Save", action: commitEdit)
+            HStack(spacing: 8) {
+                Button(action: commitEdit) {
+                    Image(systemName: "checkmark.circle")
+                        .foregroundColor(.green)
+                }
                 .buttonStyle(.borderless)
                 .disabled(editingText.isEmpty)
+                
+                Button(action: cancelEdit) {
+                    Image(systemName: "xmark.circle")
+                        .foregroundColor(.red)
+                }
+                .buttonStyle(.borderless)
+            }
         }
         .padding(.horizontal, 16)
     }
@@ -51,7 +62,7 @@ struct BannerItemView: View {
             
             if isHovered {
                 Button(action: startEditing) {
-                    Image(systemName: "pencil.circle")
+                    Image(systemName: "square.and.pencil")
                         .foregroundColor(.primary)
                 }
                 .buttonStyle(.borderless)
@@ -78,5 +89,11 @@ struct BannerItemView: View {
             editingTaskId = nil
             isEditing = false
         }
+    }
+    
+    private func cancelEdit() {
+        editingTaskId = nil
+        isEditing = false
+        editingText = task.title
     }
 } 
