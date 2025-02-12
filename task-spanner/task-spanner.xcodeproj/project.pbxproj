@@ -1,0 +1,546 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		E4CEDAC42D5CA06200E3A759 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E4CEDAAA2D5CA05F00E3A759 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E4CEDAB12D5CA05F00E3A759;
+			remoteInfo = "task-spanner";
+		};
+		E4CEDACE2D5CA06200E3A759 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E4CEDAAA2D5CA05F00E3A759 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E4CEDAB12D5CA05F00E3A759;
+			remoteInfo = "task-spanner";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		E4CEDAB22D5CA05F00E3A759 /* task-spanner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "task-spanner.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E4CEDAC32D5CA06200E3A759 /* task-spannerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "task-spannerTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E4CEDACD2D5CA06200E3A759 /* task-spannerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "task-spannerUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		E4CEDAB42D5CA05F00E3A759 /* task-spanner */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "task-spanner";
+			sourceTree = "<group>";
+		};
+		E4CEDAC62D5CA06200E3A759 /* task-spannerTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "task-spannerTests";
+			sourceTree = "<group>";
+		};
+		E4CEDAD02D5CA06200E3A759 /* task-spannerUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "task-spannerUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		E4CEDAAF2D5CA05F00E3A759 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E4CEDAC02D5CA06200E3A759 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E4CEDACA2D5CA06200E3A759 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		E4CEDAA92D5CA05F00E3A759 = {
+			isa = PBXGroup;
+			children = (
+				E4CEDAB42D5CA05F00E3A759 /* task-spanner */,
+				E4CEDAC62D5CA06200E3A759 /* task-spannerTests */,
+				E4CEDAD02D5CA06200E3A759 /* task-spannerUITests */,
+				E4CEDAB32D5CA05F00E3A759 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		E4CEDAB32D5CA05F00E3A759 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E4CEDAB22D5CA05F00E3A759 /* task-spanner.app */,
+				E4CEDAC32D5CA06200E3A759 /* task-spannerTests.xctest */,
+				E4CEDACD2D5CA06200E3A759 /* task-spannerUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		E4CEDAB12D5CA05F00E3A759 /* task-spanner */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E4CEDAD72D5CA06200E3A759 /* Build configuration list for PBXNativeTarget "task-spanner" */;
+			buildPhases = (
+				E4CEDAAE2D5CA05F00E3A759 /* Sources */,
+				E4CEDAAF2D5CA05F00E3A759 /* Frameworks */,
+				E4CEDAB02D5CA05F00E3A759 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				E4CEDAB42D5CA05F00E3A759 /* task-spanner */,
+			);
+			name = "task-spanner";
+			packageProductDependencies = (
+			);
+			productName = "task-spanner";
+			productReference = E4CEDAB22D5CA05F00E3A759 /* task-spanner.app */;
+			productType = "com.apple.product-type.application";
+		};
+		E4CEDAC22D5CA06200E3A759 /* task-spannerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E4CEDADA2D5CA06200E3A759 /* Build configuration list for PBXNativeTarget "task-spannerTests" */;
+			buildPhases = (
+				E4CEDABF2D5CA06200E3A759 /* Sources */,
+				E4CEDAC02D5CA06200E3A759 /* Frameworks */,
+				E4CEDAC12D5CA06200E3A759 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E4CEDAC52D5CA06200E3A759 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				E4CEDAC62D5CA06200E3A759 /* task-spannerTests */,
+			);
+			name = "task-spannerTests";
+			packageProductDependencies = (
+			);
+			productName = "task-spannerTests";
+			productReference = E4CEDAC32D5CA06200E3A759 /* task-spannerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		E4CEDACC2D5CA06200E3A759 /* task-spannerUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E4CEDADD2D5CA06200E3A759 /* Build configuration list for PBXNativeTarget "task-spannerUITests" */;
+			buildPhases = (
+				E4CEDAC92D5CA06200E3A759 /* Sources */,
+				E4CEDACA2D5CA06200E3A759 /* Frameworks */,
+				E4CEDACB2D5CA06200E3A759 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E4CEDACF2D5CA06200E3A759 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				E4CEDAD02D5CA06200E3A759 /* task-spannerUITests */,
+			);
+			name = "task-spannerUITests";
+			packageProductDependencies = (
+			);
+			productName = "task-spannerUITests";
+			productReference = E4CEDACD2D5CA06200E3A759 /* task-spannerUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E4CEDAAA2D5CA05F00E3A759 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 1620;
+				TargetAttributes = {
+					E4CEDAB12D5CA05F00E3A759 = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					E4CEDAC22D5CA06200E3A759 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = E4CEDAB12D5CA05F00E3A759;
+					};
+					E4CEDACC2D5CA06200E3A759 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = E4CEDAB12D5CA05F00E3A759;
+					};
+				};
+			};
+			buildConfigurationList = E4CEDAAD2D5CA05F00E3A759 /* Build configuration list for PBXProject "task-spanner" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = E4CEDAA92D5CA05F00E3A759;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = E4CEDAB32D5CA05F00E3A759 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E4CEDAB12D5CA05F00E3A759 /* task-spanner */,
+				E4CEDAC22D5CA06200E3A759 /* task-spannerTests */,
+				E4CEDACC2D5CA06200E3A759 /* task-spannerUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		E4CEDAB02D5CA05F00E3A759 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E4CEDAC12D5CA06200E3A759 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E4CEDACB2D5CA06200E3A759 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E4CEDAAE2D5CA05F00E3A759 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E4CEDABF2D5CA06200E3A759 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E4CEDAC92D5CA06200E3A759 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		E4CEDAC52D5CA06200E3A759 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E4CEDAB12D5CA05F00E3A759 /* task-spanner */;
+			targetProxy = E4CEDAC42D5CA06200E3A759 /* PBXContainerItemProxy */;
+		};
+		E4CEDACF2D5CA06200E3A759 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E4CEDAB12D5CA05F00E3A759 /* task-spanner */;
+			targetProxy = E4CEDACE2D5CA06200E3A759 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		E4CEDAD52D5CA06200E3A759 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		E4CEDAD62D5CA06200E3A759 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		E4CEDAD82D5CA06200E3A759 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "task-spanner/task_spanner.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"task-spanner/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "life.xhd2015.xyz.task-spanner";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		E4CEDAD92D5CA06200E3A759 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "task-spanner/task_spanner.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"task-spanner/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "life.xhd2015.xyz.task-spanner";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		E4CEDADB2D5CA06200E3A759 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "life.xhd2015.xyz.task-spannerTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/task-spanner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/task-spanner";
+			};
+			name = Debug;
+		};
+		E4CEDADC2D5CA06200E3A759 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "life.xhd2015.xyz.task-spannerTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/task-spanner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/task-spanner";
+			};
+			name = Release;
+		};
+		E4CEDADE2D5CA06200E3A759 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "life.xhd2015.xyz.task-spannerUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = "task-spanner";
+			};
+			name = Debug;
+		};
+		E4CEDADF2D5CA06200E3A759 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "life.xhd2015.xyz.task-spannerUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = "task-spanner";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		E4CEDAAD2D5CA05F00E3A759 /* Build configuration list for PBXProject "task-spanner" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E4CEDAD52D5CA06200E3A759 /* Debug */,
+				E4CEDAD62D5CA06200E3A759 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E4CEDAD72D5CA06200E3A759 /* Build configuration list for PBXNativeTarget "task-spanner" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E4CEDAD82D5CA06200E3A759 /* Debug */,
+				E4CEDAD92D5CA06200E3A759 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E4CEDADA2D5CA06200E3A759 /* Build configuration list for PBXNativeTarget "task-spannerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E4CEDADB2D5CA06200E3A759 /* Debug */,
+				E4CEDADC2D5CA06200E3A759 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E4CEDADD2D5CA06200E3A759 /* Build configuration list for PBXNativeTarget "task-spannerUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E4CEDADE2D5CA06200E3A759 /* Debug */,
+				E4CEDADF2D5CA06200E3A759 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = E4CEDAAA2D5CA05F00E3A759 /* Project object */;
+}
