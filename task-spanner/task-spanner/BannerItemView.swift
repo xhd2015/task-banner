@@ -8,13 +8,52 @@ struct BannerItemView: View {
     @Binding var editingText: String
     @FocusState.Binding var isEditing: Bool
     @State private var isHovered: Bool = false
+    @State private var isAddingSubTask: Bool = false
+    @State private var newSubTaskText: String = ""
+    @FocusState private var isSubTaskEditing: Bool
+    let indentLevel: Int
     
     var body: some View {
-        Group {
-            if editingTaskId == task.id {
-                editingView
-            } else {
-                displayView
+        VStack(alignment: .leading, spacing: 4) {
+            Group {
+                if editingTaskId == task.id {
+                    editingView
+                } else {
+                    displayView
+                }
+            }
+            
+            if isAddingSubTask {
+                HStack {
+                    Text("↳")
+                        .foregroundColor(.secondary)
+                    
+                    TextField("New sub-task", text: $newSubTaskText, onCommit: commitAddSubTask)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .focused($isSubTaskEditing)
+                        .onAppear {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                isSubTaskEditing = true
+                            }
+                        }
+                    
+                    HStack(spacing: 8) {
+                        Button(action: commitAddSubTask) {
+                            Image(systemName: "checkmark.circle")
+                                .foregroundColor(.green)
+                        }
+                        .buttonStyle(.borderless)
+                        .disabled(newSubTaskText.isEmpty)
+                        
+                        Button(action: cancelAddSubTask) {
+                            Image(systemName: "xmark.circle")
+                                .foregroundColor(.red)
+                        }
+                        .buttonStyle(.borderless)
+                    }
+                }
+                .padding(.leading, CGFloat(indentLevel + 1) * 16 + 16)
+                .padding(.horizontal, 16)
             }
         }
     }
@@ -51,8 +90,20 @@ struct BannerItemView: View {
     
     private var displayView: some View {
         HStack {
-            Image(systemName: "clock")
-                .foregroundColor(.primary)
+            HStack(spacing: 4) {
+                ForEach(0..<indentLevel, id: \.self) { _ in
+                    Text("│")
+                        .foregroundColor(.secondary.opacity(0.5))
+                }
+                
+                if indentLevel > 0 {
+                    Text("├")
+                        .foregroundColor(.secondary.opacity(0.5))
+                }
+                
+                Image(systemName: "clock")
+                    .foregroundColor(.primary)
+            }
             
             Text(task.title)
                 .foregroundColor(.primary)
@@ -61,17 +112,26 @@ struct BannerItemView: View {
             Spacer()
             
             if isHovered {
-                Button(action: startEditing) {
-                    Image(systemName: "square.and.pencil")
-                        .foregroundColor(.primary)
+                HStack(spacing: 8) {
+                    Button(action: startEditing) {
+                        Image(systemName: "square.and.pencil")
+                            .foregroundColor(.primary)
+                    }
+                    .buttonStyle(.borderless)
+                    
+                    Button(action: { isAddingSubTask = true }) {
+                        Image(systemName: "plus.circle")
+                            .foregroundColor(.primary)
+                    }
+                    .buttonStyle(.borderless)
                 }
-                .buttonStyle(.borderless)
             }
             
             Text(task.startTime.formatted(date: .omitted, time: .shortened))
                 .foregroundColor(.secondary)
                 .font(.caption)
         }
+        .padding(.leading, CGFloat(indentLevel) * 16)
         .padding(.horizontal, 16)
         .onHover { isHovered in
             self.isHovered = isHovered
@@ -95,5 +155,24 @@ struct BannerItemView: View {
         editingTaskId = nil
         isEditing = false
         editingText = task.title
+    }
+    
+    private func commitAddSubTask() {
+        if !newSubTaskText.isEmpty {
+            Task {
+                do {
+                    try await taskManager.addSubTask(to: task, title: newSubTaskText)
+                    cancelAddSubTask()
+                } catch {
+                    print("Failed to add sub-task: \(error)")
+                }
+            }
+        }
+    }
+    
+    private func cancelAddSubTask() {
+        isAddingSubTask = false
+        isSubTaskEditing = false
+        newSubTaskText = ""
     }
 } 

@@ -7,11 +7,15 @@ struct ActiveTask: Identifiable, Codable {
     let id: UUID
     var title: String
     var startTime: Date
+    var parentId: UUID?  // Add this field to track parent task
+    var subTasks: [ActiveTask]  // New field
     
-    init(title: String, startTime: Date = Date()) {
+    init(title: String, startTime: Date = Date(), parentId: UUID? = nil) {
         self.id = UUID()
         self.title = title
         self.startTime = startTime
+        self.parentId = parentId
+        self.subTasks = []
     }
 }
 
@@ -20,28 +24,55 @@ protocol TaskStorage {
     func saveTasks(_ tasks: [ActiveTask]) async throws
     func loadTasks() async throws -> [ActiveTask]
     func addTask(_ task: ActiveTask) async throws
+    func addSubTask(parentId: UUID, title: String) async throws
 }
 
 // Local storage implementation
 class LocalTaskStorage: TaskStorage {
     func saveTasks(_ tasks: [ActiveTask]) async throws {
-        if let encoded = try? JSONEncoder().encode(tasks) {
+        do {
+            let encoded = try JSONEncoder().encode(tasks)
             UserDefaults.standard.set(encoded, forKey: "savedTasks")
+            print("Successfully saved tasks: \(tasks.count) root tasks")
+        } catch {
+            print("Error saving tasks: \(error)")
+            throw error
         }
     }
     
     func loadTasks() async throws -> [ActiveTask] {
-        guard let savedTasks = UserDefaults.standard.data(forKey: "savedTasks"),
-              let decodedTasks = try? JSONDecoder().decode([ActiveTask].self, from: savedTasks) else {
+        guard let savedTasks = UserDefaults.standard.data(forKey: "savedTasks") else {
+            print("No saved tasks found in UserDefaults")
             return []
         }
-        return decodedTasks
+        
+        do {
+            let decodedTasks = try JSONDecoder().decode([ActiveTask].self, from: savedTasks)
+            print("Successfully loaded tasks: \(decodedTasks.count) root tasks")
+            print("Tasks details: \(decodedTasks.map { "id: \($0.id), title: \($0.title), subTasks: \($0.subTasks.count)" })")
+            return decodedTasks
+        } catch {
+            print("Error decoding tasks: \(error)")
+            print("Raw data: \(String(data: savedTasks, encoding: .utf8) ?? "unable to convert to string")")
+            return []
+        }
     }
     
     func addTask(_ task: ActiveTask) async throws {
         var currentTasks = try await loadTasks()
         currentTasks.append(task)
         try await saveTasks(currentTasks)
+    }
+    
+    func addSubTask(parentId: UUID, title: String) async throws {
+        var currentTasks = try await loadTasks()
+        let subTask = ActiveTask(title: title, parentId: parentId)
+        
+        // Find the parent task and add the subtask to its subTasks array
+        if let parentIndex = currentTasks.firstIndex(where: { $0.id == parentId }) {
+            currentTasks[parentIndex].subTasks.append(subTask)
+            try await saveTasks(currentTasks)
+        }
     }
 }
 
@@ -94,6 +125,22 @@ class RemoteTaskStorage: TaskStorage {
             throw URLError(.badServerResponse)
         }
     }
+    
+    func addSubTask(parentId: UUID, title: String) async throws {
+        let url = baseURL.appendingPathComponent("tasks/\(parentId)/subtasks")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let payload = ["title": title]
+        let encoded = try JSONEncoder().encode(payload)
+        let (_, response) = try await URLSession.shared.upload(for: request, from: encoded)
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200...299).contains(httpResponse.statusCode) else {
+            throw URLError(.badServerResponse)
+        }
+    }
 }
 
 @MainActor
@@ -135,9 +182,13 @@ class TaskManager: ObservableObject, @unchecked Sendable {
     }
     
     private func loadTasksFromStorage() async {
-        if let loadedTasks = try? await storage.loadTasks() {
+        do {
+            let loadedTasks = try await storage.loadTasks()
+            print("TaskManager loaded tasks: \(loadedTasks.count)")
             self.tasks = loadedTasks
             updateBannerVisibility()
+        } catch {
+            print("TaskManager failed to load tasks: \(error)")
         }
     }
     
@@ -186,5 +237,23 @@ class TaskManager: ObservableObject, @unchecked Sendable {
         if let index = tasks.firstIndex(where: { $0.id == task.id }) {
             tasks[index].title = newTitle
         }
+    }
+    
+    func addSubTask(to parentTask: ActiveTask, title: String) async throws {
+        print("Adding subtask '\(title)' to parent task '\(parentTask.title)' (id: \(parentTask.id))")
+        let subTask = ActiveTask(title: title, parentId: parentTask.id)
+        
+        if let parentIndex = tasks.firstIndex(where: { $0.id == parentTask.id }) {
+            tasks[parentIndex].subTasks.append(subTask)
+            print("Added subtask. Parent now has \(tasks[parentIndex].subTasks.count) subtasks")
+            try await saveTasksToStorage()
+        } else {
+            print("Failed to find parent task with id: \(parentTask.id)")
+        }
+    }
+    
+    // Update the main tasks array to only show root tasks
+    var rootTasks: [ActiveTask] {
+        tasks.filter { $0.parentId == nil }
     }
 } 

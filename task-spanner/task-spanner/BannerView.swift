@@ -8,22 +8,10 @@ struct BannerView: View {
     @FocusState private var isEditing: Bool
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ForEach(taskManager.tasks) { task in
-                BannerItemView(
-                    task: task,
-                    editingTaskId: $editingTaskId,
-                    editingText: $editingText,
-                    isEditing: $isEditing
-                )
-                
-                if task.id != taskManager.tasks.last?.id {
-                    Divider()
-                        .padding(.horizontal, 8)
-                }
+        VStack(spacing: 0) {
+            ForEach(taskManager.rootTasks) { task in
+                TaskItemWithSubtasks(task: task, editingTaskId: $editingTaskId, editingText: $editingText, isEditing: $isEditing)
             }
-            
-            Spacer(minLength: 0)
         }
         .frame(maxWidth: 400, maxHeight: 300, alignment: .top)
         .padding(.vertical, 8)
@@ -43,5 +31,32 @@ struct BannerView: View {
                     isDragging = false
                 }
         )
+    }
+}
+
+private struct TaskItemWithSubtasks: View {
+    @EnvironmentObject var taskManager: TaskManager
+    let task: ActiveTask
+    @Binding var editingTaskId: UUID?
+    @Binding var editingText: String
+    @FocusState.Binding var isEditing: Bool
+    let indentLevel: Int
+    
+    init(task: ActiveTask, editingTaskId: Binding<UUID?>, editingText: Binding<String>, isEditing: FocusState<Bool>.Binding, indentLevel: Int = 0) {
+        self.task = task
+        self._editingTaskId = editingTaskId
+        self._editingText = editingText
+        self._isEditing = isEditing
+        self.indentLevel = indentLevel
+    }
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            BannerItemView(task: task, editingTaskId: $editingTaskId, editingText: $editingText, isEditing: $isEditing, indentLevel: indentLevel)
+            
+            ForEach(task.subTasks) { subTask in
+                TaskItemWithSubtasks(task: subTask, editingTaskId: $editingTaskId, editingText: $editingText, isEditing: $isEditing, indentLevel: indentLevel + 1)
+            }
+        }
     }
 } 
