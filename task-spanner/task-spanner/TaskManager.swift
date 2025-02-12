@@ -234,9 +234,37 @@ class TaskManager: ObservableObject, @unchecked Sendable {
     }
     
     func updateTask(_ task: ActiveTask, newTitle: String) {
+        // First try to find and update in root tasks
         if let index = tasks.firstIndex(where: { $0.id == task.id }) {
             tasks[index].title = newTitle
+            return
         }
+        
+        // If not found in root tasks, search and update in subtasks
+        for parentIndex in tasks.indices {
+            if updateSubTask(in: &tasks[parentIndex].subTasks, taskId: task.id, newTitle: newTitle) {
+                // Force a view update by reassigning tasks
+                self.objectWillChange.send()
+                break
+            }
+        }
+    }
+    
+    private func updateSubTask(in subTasks: inout [ActiveTask], taskId: UUID, newTitle: String) -> Bool {
+        // Try to find and update the task in current level
+        if let index = subTasks.firstIndex(where: { $0.id == taskId }) {
+            subTasks[index].title = newTitle
+            return true
+        }
+        
+        // Recursively search in deeper levels
+        for index in subTasks.indices {
+            if updateSubTask(in: &subTasks[index].subTasks, taskId: taskId, newTitle: newTitle) {
+                return true
+            }
+        }
+        
+        return false
     }
     
     func addSubTask(to parentTask: ActiveTask, title: String) async throws {
