@@ -8,13 +8,15 @@ struct BannerView: View {
     @FocusState private var isEditing: Bool
     
     var body: some View {
-        VStack(spacing: 0) {
-            ForEach(taskManager.rootTasks) { task in
-                TaskItemWithSubtasks(task: task, editingTaskId: $editingTaskId, editingText: $editingText, isEditing: $isEditing)
+        ScrollView(.vertical, showsIndicators: true) {
+            VStack(spacing: 0) {
+                ForEach(taskManager.rootTasks) { task in
+                    TaskItemWithSubtasks(task: task, editingTaskId: $editingTaskId, editingText: $editingText, isEditing: $isEditing)
+                }
             }
+            .padding(.vertical, 8)
         }
-        .frame(maxWidth: 400, maxHeight: 300, alignment: .top)
-        .padding(.vertical, 8)
+        .frame(maxWidth: 400, minHeight: 300, maxHeight: 600)  // Added minHeight
         .background {
             RoundedRectangle(cornerRadius: 16)
                 .fill(.ultraThinMaterial)

@@ -101,13 +101,17 @@ struct BannerItemView: View {
                         .foregroundColor(.secondary.opacity(0.5))
                 }
                 
-                Image(systemName: "clock")
-                    .foregroundColor(.primary)
+                Button(action: toggleStatus) {
+                    Image(systemName: task.status == .done ? "checkmark.square.fill" : "square")
+                        .foregroundColor(task.status == .done ? .green : .primary)
+                }
+                .buttonStyle(.plain)
             }
             
             Text(task.title)
-                .foregroundColor(.primary)
+                .foregroundColor(task.status == .done ? .secondary : .primary)
                 .lineLimit(1)
+                .strikethrough(task.status == .done)
             
             Spacer()
             
@@ -119,11 +123,13 @@ struct BannerItemView: View {
                     }
                     .buttonStyle(.borderless)
                     
-                    Button(action: { isAddingSubTask = true }) {
-                        Image(systemName: "plus.circle")
-                            .foregroundColor(.primary)
+                    if task.parentId == nil {
+                        Button(action: { isAddingSubTask = true }) {
+                            Image(systemName: "plus.circle")
+                                .foregroundColor(.primary)
+                        }
+                        .buttonStyle(.borderless)
                     }
-                    .buttonStyle(.borderless)
                 }
             }
             
@@ -174,5 +180,10 @@ struct BannerItemView: View {
         isAddingSubTask = false
         isSubTaskEditing = false
         newSubTaskText = ""
+    }
+    
+    private func toggleStatus() {
+        let newStatus: TaskStatus = task.status == .done ? .created : .done
+        taskManager.updateTaskStatus(task, newStatus: newStatus)
     }
 } 

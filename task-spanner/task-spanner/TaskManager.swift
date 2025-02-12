@@ -3,12 +3,22 @@ import AppKit
 import SwiftUI
 
 // First, make ActiveTask codable so we can save it
+enum TaskStatus: String, Codable {
+    case created
+    case done
+}
+
 struct ActiveTask: Identifiable, Codable {
     let id: UUID
     var title: String
     var startTime: Date
     var parentId: UUID?  // Add this field to track parent task
     var subTasks: [ActiveTask]  // New field
+    var status: TaskStatus  // New field
+    
+    enum CodingKeys: CodingKey {
+        case id, title, startTime, parentId, subTasks, status
+    }
     
     init(title: String, startTime: Date = Date(), parentId: UUID? = nil) {
         self.id = UUID()
@@ -16,6 +26,19 @@ struct ActiveTask: Identifiable, Codable {
         self.startTime = startTime
         self.parentId = parentId
         self.subTasks = []
+        self.status = .created
+    }
+    
+    // Add decoder init to handle legacy data
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        title = try container.decode(String.self, forKey: .title)
+        startTime = try container.decode(Date.self, forKey: .startTime)
+        parentId = try container.decodeIfPresent(UUID.self, forKey: .parentId)
+        subTasks = try container.decode([ActiveTask].self, forKey: .subTasks)
+        // Default to .created if status is not present in the data
+        status = try container.decodeIfPresent(TaskStatus.self, forKey: .status) ?? .created
     }
 }
 
@@ -296,5 +319,39 @@ class TaskManager: ObservableObject, @unchecked Sendable {
         let importedTasks = try decoder.decode([ActiveTask].self, from: data)
         self.tasks = importedTasks
         try await saveTasksToStorage()
+    }
+    
+    func updateTaskStatus(_ task: ActiveTask, newStatus: TaskStatus) {
+        // First try to find and update in root tasks
+        if let index = tasks.firstIndex(where: { $0.id == task.id }) {
+            tasks[index].status = newStatus
+            return
+        }
+        
+        // If not found in root tasks, search and update in subtasks
+        for parentIndex in tasks.indices {
+            if updateSubTaskStatus(in: &tasks[parentIndex].subTasks, taskId: task.id, newStatus: newStatus) {
+                // Force a view update by reassigning tasks
+                self.objectWillChange.send()
+                break
+            }
+        }
+    }
+    
+    private func updateSubTaskStatus(in subTasks: inout [ActiveTask], taskId: UUID, newStatus: TaskStatus) -> Bool {
+        // Try to find and update the task in current level
+        if let index = subTasks.firstIndex(where: { $0.id == taskId }) {
+            subTasks[index].status = newStatus
+            return true
+        }
+        
+        // Recursively search in deeper levels
+        for index in subTasks.indices {
+            if updateSubTaskStatus(in: &subTasks[index].subTasks, taskId: taskId, newStatus: newStatus) {
+                return true
+            }
+        }
+        
+        return false
     }
 } 

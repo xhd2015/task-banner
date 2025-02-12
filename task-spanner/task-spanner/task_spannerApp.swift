@@ -13,6 +13,14 @@ class AppState: ObservableObject {
             print("AppState: showFileImporter changed from \(oldValue) to \(showFileImporter)")
         }
     }
+    
+    @Published var showFileExporter = false
+    @Published var exportData: Data?
+    
+    func startExport(data: Data) {
+        exportData = data
+        showFileExporter = true
+    }
 }
 
 @main
@@ -88,6 +96,18 @@ struct FileImporterView: View {
                     
                 case .failure(let error):
                     print("Import error: \(error.localizedDescription)")
+                }
+            }
+            .fileExporter(
+                isPresented: $appState.showFileExporter,
+                document: JSONDocument(data: appState.exportData ?? Data()),
+                contentType: .json,
+                defaultFilename: "tasks.json"
+            ) { result in
+                if case .failure(let error) = result {
+                    print("Failed to export file: \(error)")
+                } else {
+                    print("Successfully exported tasks")
                 }
             }
     }

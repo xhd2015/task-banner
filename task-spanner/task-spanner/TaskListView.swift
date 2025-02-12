@@ -5,8 +5,6 @@ struct TaskListView: View {
     @EnvironmentObject var taskManager: TaskManager
     @EnvironmentObject var appState: AppState
     @State private var newTaskTitle: String = ""
-    @State private var showFileExporter = false
-    @State private var exportData: Data?
     
     var body: some View {
         VStack(spacing: 12) {
@@ -40,24 +38,14 @@ struct TaskListView: View {
                 Button(action: {
                     Task {
                         do {
-                            exportData = try await taskManager.exportTasksToJSON()
-                            showFileExporter = true
+                            let data = try await taskManager.exportTasksToJSON()
+                            appState.startExport(data: data)
                         } catch {
                             print("Failed to export tasks: \(error)")
                         }
                     }
                 }) {
                     Label("Export Tasks", systemImage: "square.and.arrow.up")
-                }
-                .fileExporter(
-                    isPresented: $showFileExporter,
-                    document: JSONDocument(data: exportData ?? Data()),
-                    contentType: .json,
-                    defaultFilename: "tasks.json"
-                ) { result in
-                    if case .failure(let error) = result {
-                        print("Failed to save file: \(error)")
-                    }
                 }
                 
                 Spacer()
