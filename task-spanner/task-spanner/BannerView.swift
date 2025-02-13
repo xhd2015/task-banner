@@ -1,5 +1,14 @@
 import SwiftUI
 
+// Add this struct near other route-related types
+struct RouteParams: Equatable {
+    var taskId: UUID?
+    
+    static func == (lhs: RouteParams, rhs: RouteParams) -> Bool {
+        lhs.taskId == rhs.taskId
+    }
+}
+
 struct BannerView: View {
     @EnvironmentObject var taskManager: TaskManager
     @State private var isDragging: Bool = false
@@ -9,7 +18,8 @@ struct BannerView: View {
     @State private var recentlyFinishedTasks: Set<UUID> = []
     @State private var mode: TaskMode = .work
     @State private var isCollapsed: Bool = false
-    @State private var selectedTaskId: UUID? = nil
+    @State private var routePath: RoutePath = .list
+    @State private var routeParams: RouteParams = RouteParams()
     @FocusState private var isEditing: Bool
     
     var filteredTasks: [ActiveTask] {
@@ -24,8 +34,11 @@ struct BannerView: View {
         VStack(spacing: 0) {
             // Top bar
             HStack {
-                if selectedTaskId != nil {
-                    Button(action: { selectedTaskId = nil }) {
+                if routePath == .detail {
+                    Button(action: { 
+                        routePath = .list
+                        routeParams = RouteParams()
+                    }) {
                         Image(systemName: "chevron.left")
                             .foregroundColor(.secondary)
                     }
@@ -40,7 +53,7 @@ struct BannerView: View {
                     .padding(.trailing)
                 }
                 
-                if selectedTaskId == nil {
+                if routePath == .list {
                     ModeSwitcher(mode: $mode)
                 } else {
                     Text("Task Details")
@@ -65,23 +78,41 @@ struct BannerView: View {
             .padding(.vertical, 8)
             
             if !isCollapsed {
-                if let selectedId = selectedTaskId, let task = findTask(id: selectedId) {
-                    TaskDetailView(task: task)
-                        .transition(.move(edge: .trailing))
-                } else {
-                    ScrollView(.vertical, showsIndicators: true) {
-                        VStack(spacing: 0) {
-                            ForEach(filteredTasks) { task in
-                                TaskItemWithSubtasks(task: task, 
-                                    editingTaskId: $editingTaskId, 
-                                    editingText: $editingText, 
-                                    isEditing: $isEditing,
-                                    selectedTaskId: $selectedTaskId)
+                Group {
+                    if routePath == .detail {
+                        if let taskId = routeParams.taskId {
+                            if let task = findTask(id: taskId) {
+                                TaskDetailView(task: task)
+                                    .transition(.move(edge: .trailing))
+                            } else {
+                                Text("Task not found")
+                                    .foregroundColor(.secondary)
                             }
+                        } else {
+                            Text("Invalid task ID")
+                                .foregroundColor(.secondary)
                         }
-                        .padding(.vertical, 8)
+                    } else {
+                        ScrollView(.vertical, showsIndicators: true) {
+                            VStack(spacing: 0) {
+                                ForEach(filteredTasks) { task in
+                                    TaskItemWithSubtasks(task: task, 
+                                        editingTaskId: $editingTaskId, 
+                                        editingText: $editingText, 
+                                        isEditing: $isEditing,
+                                        selectedTaskId: .constant(nil),
+                                        onTaskSelect: { taskId in
+                                            withAnimation {
+                                                routePath = .detail
+                                                routeParams = RouteParams(taskId: taskId)
+                                            }
+                                        })
+                                }
+                            }
+                            .padding(.vertical, 8)
+                        }
+                        .transition(.move(edge: .leading))
                     }
-                    .transition(.move(edge: .leading))
                 }
             }
         }
@@ -94,7 +125,7 @@ struct BannerView: View {
         .padding(.horizontal)
         .opacity(isDragging ? 0.7 : 1.0)
         .animation(.easeInOut(duration: 0.2), value: isDragging)
-        .animation(.easeInOut(duration: 0.2), value: selectedTaskId)
+        .animation(.easeInOut(duration: 0.2), value: routePath)
         .simultaneousGesture(
             DragGesture()
                 .onChanged { _ in
@@ -104,6 +135,15 @@ struct BannerView: View {
                     isDragging = false
                 }
         )
+        .onAppear {
+            print("BannerView appeared with route: \(routePath), params: \(routeParams)")
+        }
+        .onChange(of: routePath) { newPath in
+            print("Route changed to: \(newPath), params: \(routeParams)")
+        }
+        .onChange(of: routeParams) { newParams in
+            print("Route params changed: \(newParams)")
+        }
     }
     
     private func findTask(id: UUID) -> ActiveTask? {
@@ -118,7 +158,7 @@ struct BannerView: View {
             }
             return nil
         }
-        return search(in: taskManager.tasks)
+        return search(in: taskManager.rootTasks)
     }
     
     // Recursively filter tasks and their subtasks
@@ -170,14 +210,16 @@ private struct TaskItemWithSubtasks: View {
     let indentLevel: Int
     @State private var recentlyFinishedTasks: Set<UUID> = []
     @Binding var selectedTaskId: UUID?
+    let onTaskSelect: (UUID) -> Void
     
-    init(task: ActiveTask, editingTaskId: Binding<UUID?>, editingText: Binding<String>, isEditing: FocusState<Bool>.Binding, indentLevel: Int = 0, selectedTaskId: Binding<UUID?>) {
+    init(task: ActiveTask, editingTaskId: Binding<UUID?>, editingText: Binding<String>, isEditing: FocusState<Bool>.Binding, indentLevel: Int = 0, selectedTaskId: Binding<UUID?>, onTaskSelect: @escaping (UUID) -> Void) {
         self.task = task
         self._editingTaskId = editingTaskId
         self._editingText = editingText
         self._isEditing = isEditing
         self.indentLevel = indentLevel
         self._selectedTaskId = selectedTaskId
+        self.onTaskSelect = onTaskSelect
     }
     
     var filteredSubTasks: [ActiveTask] {
@@ -195,7 +237,7 @@ private struct TaskItemWithSubtasks: View {
                 editingText: $editingText, 
                 isEditing: $isEditing, 
                 indentLevel: indentLevel,
-                selectedTaskId: $selectedTaskId,
+                onTaskSelect: onTaskSelect,
                 recentlyFinishedTasks: $recentlyFinishedTasks)
             
             ForEach(filteredSubTasks) { subTask in
@@ -204,7 +246,8 @@ private struct TaskItemWithSubtasks: View {
                     editingText: $editingText, 
                     isEditing: $isEditing, 
                     indentLevel: indentLevel + 1,
-                    selectedTaskId: $selectedTaskId)
+                    selectedTaskId: $selectedTaskId,
+                    onTaskSelect: onTaskSelect)
             }
         }
     }
@@ -241,6 +284,15 @@ extension View {
             }
         }
     }
+
+    func debugPrint(_ items: Any...) -> some View {
+        #if DEBUG
+        for item in items {
+            print(item)
+        }
+        #endif
+        return self
+    }
 }
 
 // Add this enum at the bottom of the file
@@ -249,4 +301,10 @@ enum TaskMode: String, CaseIterable, Identifiable {
     case life = "LIFE"
     
     var id: Self { self }
+}
+
+// Add this enum at the bottom of the file, near other enums
+enum RoutePath {
+    case list
+    case detail
 } 

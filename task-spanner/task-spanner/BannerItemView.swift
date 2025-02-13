@@ -11,25 +11,25 @@ struct BannerItemView: View {
     @State private var isAddingSubTask: Bool = false
     @State private var newSubTaskText: String = ""
     @FocusState private var isSubTaskEditing: Bool
-    @Binding var selectedTaskId: UUID?
     let indentLevel: Int
+    let onTaskSelect: (UUID) -> Void
+    @Binding var recentlyFinishedTasks: Set<UUID>
     
     @Environment(\.showOnlyUnfinished) private var showOnlyUnfinished
-    @Binding var recentlyFinishedTasks: Set<UUID>
     
     init(task: ActiveTask, 
          editingTaskId: Binding<UUID?>, 
          editingText: Binding<String>, 
          isEditing: FocusState<Bool>.Binding, 
          indentLevel: Int = 0,
-         selectedTaskId: Binding<UUID?>,
+         onTaskSelect: @escaping (UUID) -> Void,
          recentlyFinishedTasks: Binding<Set<UUID>> = .constant([])) {
         self.task = task
         self._editingTaskId = editingTaskId
         self._editingText = editingText
         self._isEditing = isEditing
         self.indentLevel = indentLevel
-        self._selectedTaskId = selectedTaskId
+        self.onTaskSelect = onTaskSelect
         self._recentlyFinishedTasks = recentlyFinishedTasks
     }
     
@@ -167,7 +167,7 @@ struct BannerItemView: View {
                     }
                     .buttonStyle(.borderless)
                     
-                    Button(action: { selectedTaskId = task.id }) {
+                    Button(action: { onTaskSelect(task.id) }) {
                         Image(systemName: "info.circle")
                             .foregroundColor(.primary)
                     }
@@ -186,6 +186,17 @@ struct BannerItemView: View {
             Text(task.startTime.formatted(date: .omitted, time: .shortened))
                 .foregroundColor(.secondary)
                 .font(.caption)
+            
+            if task.status == .created {
+                Button(action: {
+                    onTaskSelect(task.id)
+                }) {
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(.secondary)
+                        .font(.caption)
+                }
+                .buttonStyle(.plain)
+            }
         }
         .padding(.leading, CGFloat(indentLevel) * 16)
         .padding(.horizontal, 16)
