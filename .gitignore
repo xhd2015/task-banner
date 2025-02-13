@@ -1,1 +1,5 @@
 /prototype.png
+/server/tasks.db
+/server/tasks.json
+/frontend/node_modules
+/frontend/build
