@@ -2,6 +2,7 @@
 
 This task banner provides a hierachical way to manage tasks.
 
+```
 ┌─ WORK ──────────────────────────┐
 │                                 │
 │ □ Update API Documentation  9:30 │
@@ -20,5 +21,6 @@ This task banner provides a hierachical way to manage tasks.
 │ □ Performance Optimization 2:30 │
 │   └─□ Cache Implementation     │
 └─────────────────────────────────┘
+```
 
 The app now works on MacOS.
