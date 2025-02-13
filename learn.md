@@ -41,6 +41,19 @@ The `TextField` contains the following declaration:
 let binding: Binding<String>  // This is what $editingText creates
 ```
 
+## Parameter Label Ignoring
+```swift
+private func renderNoteText(text: String)
+-->
+renderNoteText(text: "Hello")  // Must include the parameter label 'text'
+```
+
+```
+private func renderNoteText(_ text: String)
+-->
+renderNoteText("Hello")  // No need to include the parameter label 'text'
+```
+
 # Interesting Cursor
 
 ## Cursor can draw text-based image!
