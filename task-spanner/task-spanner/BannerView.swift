@@ -9,6 +9,7 @@ struct BannerView: View {
     @State private var recentlyFinishedTasks: Set<UUID> = []
     @State private var mode: TaskMode = .work
     @State private var isCollapsed: Bool = false
+    @State private var selectedTaskId: UUID? = nil
     @FocusState private var isEditing: Bool
     
     var filteredTasks: [ActiveTask] {
@@ -21,23 +22,34 @@ struct BannerView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Updated top bar with mode switch
+            // Top bar
             HStack {
-                // Existing toggle button
-                Button(action: { showOnlyUnfinished.toggle() }) {
-                    Image(systemName: showOnlyUnfinished ? "checklist.unchecked" : "checklist")
-                        .foregroundColor(.secondary)
+                if selectedTaskId != nil {
+                    Button(action: { selectedTaskId = nil }) {
+                        Image(systemName: "chevron.left")
+                            .foregroundColor(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.trailing)
+                } else {
+                    Button(action: { showOnlyUnfinished.toggle() }) {
+                        Image(systemName: showOnlyUnfinished ? "checklist.unchecked" : "checklist")
+                            .foregroundColor(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.trailing)
                 }
-                .buttonStyle(.plain)
-                .padding(.trailing)
-                .padding(.vertical, 8)
                 
-                // Add mode switch
-                ModeSwitcher(mode: $mode)
+                if selectedTaskId == nil {
+                    ModeSwitcher(mode: $mode)
+                } else {
+                    Text("Task Details")
+                        .foregroundColor(.primary)
+                        .font(.subheadline)
+                }
                 
                 Spacer()
                 
-                // Add collapse/expand button
                 Button(action: { 
                     withAnimation(.easeInOut(duration: 0.2)) {
                         isCollapsed.toggle()
@@ -50,18 +62,26 @@ struct BannerView: View {
                 .buttonStyle(.plain)
             }
             .padding(.horizontal)
+            .padding(.vertical, 8)
             
             if !isCollapsed {
-                ScrollView(.vertical, showsIndicators: true) {
-                    VStack(spacing: 0) {
-                        ForEach(filteredTasks) { task in
-                            TaskItemWithSubtasks(task: task, 
-                                editingTaskId: $editingTaskId, 
-                                editingText: $editingText, 
-                                isEditing: $isEditing)
+                if let selectedId = selectedTaskId, let task = findTask(id: selectedId) {
+                    TaskDetailView(task: task)
+                        .transition(.move(edge: .trailing))
+                } else {
+                    ScrollView(.vertical, showsIndicators: true) {
+                        VStack(spacing: 0) {
+                            ForEach(filteredTasks) { task in
+                                TaskItemWithSubtasks(task: task, 
+                                    editingTaskId: $editingTaskId, 
+                                    editingText: $editingText, 
+                                    isEditing: $isEditing,
+                                    selectedTaskId: $selectedTaskId)
+                            }
                         }
+                        .padding(.vertical, 8)
                     }
-                    .padding(.vertical, 8)
+                    .transition(.move(edge: .leading))
                 }
             }
         }
@@ -74,6 +94,7 @@ struct BannerView: View {
         .padding(.horizontal)
         .opacity(isDragging ? 0.7 : 1.0)
         .animation(.easeInOut(duration: 0.2), value: isDragging)
+        .animation(.easeInOut(duration: 0.2), value: selectedTaskId)
         .simultaneousGesture(
             DragGesture()
                 .onChanged { _ in
@@ -83,6 +104,21 @@ struct BannerView: View {
                     isDragging = false
                 }
         )
+    }
+    
+    private func findTask(id: UUID) -> ActiveTask? {
+        func search(in tasks: [ActiveTask]) -> ActiveTask? {
+            for task in tasks {
+                if task.id == id {
+                    return task
+                }
+                if let found = search(in: task.subTasks) {
+                    return found
+                }
+            }
+            return nil
+        }
+        return search(in: taskManager.tasks)
     }
     
     // Recursively filter tasks and their subtasks
@@ -133,13 +169,15 @@ private struct TaskItemWithSubtasks: View {
     @Environment(\.showOnlyUnfinished) private var showOnlyUnfinished
     let indentLevel: Int
     @State private var recentlyFinishedTasks: Set<UUID> = []
+    @Binding var selectedTaskId: UUID?
     
-    init(task: ActiveTask, editingTaskId: Binding<UUID?>, editingText: Binding<String>, isEditing: FocusState<Bool>.Binding, indentLevel: Int = 0) {
+    init(task: ActiveTask, editingTaskId: Binding<UUID?>, editingText: Binding<String>, isEditing: FocusState<Bool>.Binding, indentLevel: Int = 0, selectedTaskId: Binding<UUID?>) {
         self.task = task
         self._editingTaskId = editingTaskId
         self._editingText = editingText
         self._isEditing = isEditing
         self.indentLevel = indentLevel
+        self._selectedTaskId = selectedTaskId
     }
     
     var filteredSubTasks: [ActiveTask] {
@@ -157,6 +195,7 @@ private struct TaskItemWithSubtasks: View {
                 editingText: $editingText, 
                 isEditing: $isEditing, 
                 indentLevel: indentLevel,
+                selectedTaskId: $selectedTaskId,
                 recentlyFinishedTasks: $recentlyFinishedTasks)
             
             ForEach(filteredSubTasks) { subTask in
@@ -164,7 +203,8 @@ private struct TaskItemWithSubtasks: View {
                     editingTaskId: $editingTaskId, 
                     editingText: $editingText, 
                     isEditing: $isEditing, 
-                    indentLevel: indentLevel + 1)
+                    indentLevel: indentLevel + 1,
+                    selectedTaskId: $selectedTaskId)
             }
         }
     }

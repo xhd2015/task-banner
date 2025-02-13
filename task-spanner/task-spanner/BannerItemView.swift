@@ -11,6 +11,7 @@ struct BannerItemView: View {
     @State private var isAddingSubTask: Bool = false
     @State private var newSubTaskText: String = ""
     @FocusState private var isSubTaskEditing: Bool
+    @Binding var selectedTaskId: UUID?
     let indentLevel: Int
     
     @Environment(\.showOnlyUnfinished) private var showOnlyUnfinished
@@ -21,12 +22,14 @@ struct BannerItemView: View {
          editingText: Binding<String>, 
          isEditing: FocusState<Bool>.Binding, 
          indentLevel: Int = 0,
+         selectedTaskId: Binding<UUID?>,
          recentlyFinishedTasks: Binding<Set<UUID>> = .constant([])) {
         self.task = task
         self._editingTaskId = editingTaskId
         self._editingText = editingText
         self._isEditing = isEditing
         self.indentLevel = indentLevel
+        self._selectedTaskId = selectedTaskId
         self._recentlyFinishedTasks = recentlyFinishedTasks
     }
     
@@ -160,6 +163,12 @@ struct BannerItemView: View {
                     
                     Button(action: startEditing) {
                         Image(systemName: "square.and.pencil")
+                            .foregroundColor(.primary)
+                    }
+                    .buttonStyle(.borderless)
+                    
+                    Button(action: { selectedTaskId = task.id }) {
+                        Image(systemName: "info.circle")
                             .foregroundColor(.primary)
                     }
                     .buttonStyle(.borderless)
