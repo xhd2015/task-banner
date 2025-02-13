@@ -113,6 +113,7 @@ struct BannerView: View {
                         if let taskId = routeManager.current.params.taskId {
                             if let task = findTask(id: taskId) {
                                 TaskDetailView(task: task)
+                                    .environmentObject(routeManager)
                                     .transition(.move(edge: .trailing))
                             } else {
                                 Text("Task not found")

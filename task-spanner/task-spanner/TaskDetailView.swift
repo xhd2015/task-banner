@@ -2,6 +2,7 @@ import SwiftUI
 
 struct TaskDetailView: View {
     @EnvironmentObject var taskManager: TaskManager
+    @EnvironmentObject var routeManager: RouteManager
     let task: ActiveTask
     
     var body: some View {
@@ -45,12 +46,33 @@ struct TaskDetailView: View {
                             .font(.headline)
                         
                         ForEach(task.subTasks) { subtask in
-                            HStack {
-                                Image(systemName: subtask.status == .done ? "checkmark.square.fill" : "square")
-                                    .foregroundColor(subtask.status == .done ? .green : .primary)
-                                Text(subtask.title)
-                                    .strikethrough(subtask.status == .done)
-                                Spacer()
+                            HStack(spacing: 8) {
+                                // Status toggle button
+                                Button(action: {
+                                    taskManager.updateTaskStatus(subtask, newStatus: subtask.status == .done ? .created : .done)
+                                }) {
+                                    Image(systemName: subtask.status == .done ? "checkmark.square.fill" : "square")
+                                        .foregroundColor(subtask.status == .done ? .green : .primary)
+                                }
+                                .buttonStyle(.plain)
+                                
+                                // Navigation button for the rest of the row
+                                Button(action: {
+                                    withAnimation {
+                                        routeManager.navigateToDetail(taskId: subtask.id)
+                                    }
+                                }) {
+                                    HStack {
+                                        Text(subtask.title)
+                                            .strikethrough(subtask.status == .done)
+                                            .foregroundColor(.primary)
+                                        Spacer()
+                                        Image(systemName: "chevron.right")
+                                            .foregroundColor(.secondary)
+                                            .font(.caption)
+                                    }
+                                }
+                                .buttonStyle(.plain)
                             }
                         }
                     }
