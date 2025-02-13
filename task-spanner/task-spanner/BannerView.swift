@@ -9,8 +9,39 @@ struct RouteParams: Equatable {
     }
 }
 
+// Add this struct near other route-related types
+struct RouteState: Equatable {
+    var path: RoutePath
+    var params: RouteParams
+}
+
+// Add this class near other route-related types
+class RouteManager: ObservableObject {
+    @Published private(set) var history: [RouteState] = []
+    @Published private(set) var current: RouteState = RouteState(path: .list, params: RouteParams())
+    
+    func navigate(to route: RouteState) {
+        history.append(current)
+        current = route
+    }
+    
+    func navigateBack() {
+        if let previousRoute = history.popLast() {
+            current = previousRoute
+        }
+    }
+    
+    func navigateToDetail(taskId: UUID) {
+        navigate(to: RouteState(
+            path: .detail,
+            params: RouteParams(taskId: taskId)
+        ))
+    }
+}
+
 struct BannerView: View {
     @EnvironmentObject var taskManager: TaskManager
+    @StateObject private var routeManager = RouteManager()
     @State private var isDragging: Bool = false
     @State private var editingTaskId: UUID? = nil
     @State private var editingText: String = ""
@@ -18,8 +49,6 @@ struct BannerView: View {
     @State private var recentlyFinishedTasks: Set<UUID> = []
     @State private var mode: TaskMode = .work
     @State private var isCollapsed: Bool = false
-    @State private var routePath: RoutePath = .list
-    @State private var routeParams: RouteParams = RouteParams()
     @FocusState private var isEditing: Bool
     
     var filteredTasks: [ActiveTask] {
@@ -34,10 +63,11 @@ struct BannerView: View {
         VStack(spacing: 0) {
             // Top bar
             HStack {
-                if routePath == .detail {
+                if routeManager.current.path == .detail {
                     Button(action: { 
-                        routePath = .list
-                        routeParams = RouteParams()
+                        withAnimation {
+                            routeManager.navigateBack()
+                        }
                     }) {
                         Image(systemName: "chevron.left")
                             .foregroundColor(.secondary)
@@ -53,7 +83,7 @@ struct BannerView: View {
                     .padding(.trailing)
                 }
                 
-                if routePath == .list {
+                if routeManager.current.path == .list {
                     ModeSwitcher(mode: $mode)
                 } else {
                     Text("Task Details")
@@ -79,8 +109,8 @@ struct BannerView: View {
             
             if !isCollapsed {
                 Group {
-                    if routePath == .detail {
-                        if let taskId = routeParams.taskId {
+                    if routeManager.current.path == .detail {
+                        if let taskId = routeManager.current.params.taskId {
                             if let task = findTask(id: taskId) {
                                 TaskDetailView(task: task)
                                     .transition(.move(edge: .trailing))
@@ -103,8 +133,7 @@ struct BannerView: View {
                                         selectedTaskId: .constant(nil),
                                         onTaskSelect: { taskId in
                                             withAnimation {
-                                                routePath = .detail
-                                                routeParams = RouteParams(taskId: taskId)
+                                                routeManager.navigateToDetail(taskId: taskId)
                                             }
                                         })
                                 }
@@ -125,7 +154,7 @@ struct BannerView: View {
         .padding(.horizontal)
         .opacity(isDragging ? 0.7 : 1.0)
         .animation(.easeInOut(duration: 0.2), value: isDragging)
-        .animation(.easeInOut(duration: 0.2), value: routePath)
+        .animation(.easeInOut(duration: 0.2), value: routeManager.current.path)
         .simultaneousGesture(
             DragGesture()
                 .onChanged { _ in
@@ -136,13 +165,10 @@ struct BannerView: View {
                 }
         )
         .onAppear {
-            print("BannerView appeared with route: \(routePath), params: \(routeParams)")
+            print("BannerView appeared with route: \(routeManager.current.path), params: \(routeManager.current.params)")
         }
-        .onChange(of: routePath) { newPath in
-            print("Route changed to: \(newPath), params: \(routeParams)")
-        }
-        .onChange(of: routeParams) { newParams in
-            print("Route params changed: \(newParams)")
+        .onChange(of: routeManager.current) { newRoute in
+            print("Route changed to: \(newRoute.path), params: \(newRoute.params), history: \(routeManager.history.count) items")
         }
     }
     
