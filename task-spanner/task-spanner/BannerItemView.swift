@@ -167,12 +167,6 @@ struct BannerItemView: View {
                     }
                     .buttonStyle(.borderless)
                     
-                    Button(action: { onTaskSelect(task.id) }) {
-                        Image(systemName: "info.circle")
-                            .foregroundColor(.primary)
-                    }
-                    .buttonStyle(.borderless)
-                    
                     if task.parentId == nil {
                         Button(action: { isAddingSubTask = true }) {
                             Image(systemName: "plus.circle")
@@ -187,16 +181,14 @@ struct BannerItemView: View {
                 .foregroundColor(.secondary)
                 .font(.caption)
             
-            if task.status == .created {
-                Button(action: {
-                    onTaskSelect(task.id)
-                }) {
-                    Image(systemName: "chevron.right")
-                        .foregroundColor(.secondary)
-                        .font(.caption)
-                }
-                .buttonStyle(.plain)
+            Button(action: {
+                onTaskSelect(task.id)
+            }) {
+                Image(systemName: "chevron.right")
+                    .foregroundColor(.secondary)
+                    .font(.caption)
             }
+            .buttonStyle(.plain)
         }
         .padding(.leading, CGFloat(indentLevel) * 16)
         .padding(.horizontal, 16)
