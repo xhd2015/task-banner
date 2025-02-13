@@ -8,6 +8,7 @@ struct BannerView: View {
     @State private var showOnlyUnfinished: Bool = true
     @State private var recentlyFinishedTasks: Set<UUID> = []
     @State private var mode: TaskMode = .work
+    @State private var isCollapsed: Bool = false
     @FocusState private var isEditing: Bool
     
     var filteredTasks: [ActiveTask] {
@@ -35,23 +36,37 @@ struct BannerView: View {
                 ModeSwitcher(mode: $mode)
                 
                 Spacer()
+                
+                // Add collapse/expand button
+                Button(action: { 
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isCollapsed.toggle()
+                    }
+                }) {
+                    Image(systemName: isCollapsed ? "chevron.down" : "chevron.up")
+                        .foregroundColor(.secondary)
+                        .font(.caption)
+                }
+                .buttonStyle(.plain)
             }
             .padding(.horizontal)
             
-            ScrollView(.vertical, showsIndicators: true) {
-                VStack(spacing: 0) {
-                    ForEach(filteredTasks) { task in
-                        TaskItemWithSubtasks(task: task, 
-                            editingTaskId: $editingTaskId, 
-                            editingText: $editingText, 
-                            isEditing: $isEditing)
+            if !isCollapsed {
+                ScrollView(.vertical, showsIndicators: true) {
+                    VStack(spacing: 0) {
+                        ForEach(filteredTasks) { task in
+                            TaskItemWithSubtasks(task: task, 
+                                editingTaskId: $editingTaskId, 
+                                editingText: $editingText, 
+                                isEditing: $isEditing)
+                        }
                     }
+                    .padding(.vertical, 8)
                 }
-                .padding(.vertical, 8)
             }
         }
         .environment(\.showOnlyUnfinished, showOnlyUnfinished)
-        .frame(maxWidth: 400, minHeight: 300, maxHeight: 600)
+        .frame(maxWidth: 400, minHeight: isCollapsed ? 1 : 300, maxHeight: isCollapsed ? 50 : 600)
         .background {
             RoundedRectangle(cornerRadius: 16)
                 .fill(.ultraThinMaterial)
