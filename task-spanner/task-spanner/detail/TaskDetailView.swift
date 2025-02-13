@@ -5,36 +5,50 @@ struct TaskDetailView: View {
     @EnvironmentObject var routeManager: RouteManager
     let task: ActiveTask
     
+    private func relativeTimeString(from date: Date) -> String {
+        let now = Date()
+        let components = Calendar.current.dateComponents([.minute, .hour, .day, .month, .year], from: date, to: now)
+        
+        if let year = components.year, year > 0 {
+            return "\(year)y ago"
+        } else if let month = components.month, month > 0 {
+            return "\(month)mo ago"
+        } else if let day = components.day, day > 0 {
+            return "\(day)d ago"
+        } else if let hour = components.hour, hour > 0 {
+            return "\(hour)h ago"
+        } else if let minute = components.minute, minute > 0 {
+            return "\(minute)m ago"
+        } else {
+            return "just now"
+        }
+    }
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
                 Group {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Task Information")
-                            .font(.headline)
-                        
-                        HStack {
-                            Text("Title")
-                                .foregroundColor(.secondary)
-                            Spacer()
-                            Text(task.title)
-                        }
-                        
-                        HStack {
-                            Text("Status")
-                                .foregroundColor(.secondary)
-                            Spacer()
-                            Text(task.status.rawValue.capitalized)
+                        // Task content and status
+                        HStack(alignment: .top, spacing: 12) {
+                            Image(systemName: task.status == .done ? "checkmark.circle.fill" : "circle")
                                 .foregroundColor(task.status == .done ? .green : .blue)
-                        }
-                        
-                        HStack {
-                            Text("Start Time")
-                                .foregroundColor(.secondary)
+                                .font(.title2)
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(task.title)
+                                    .font(.headline)
+                                    .foregroundColor(task.status == .done ? .secondary : .primary)
+                                
+                                Text(relativeTimeString(from: task.startTime))
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            
                             Spacer()
-                            Text(task.startTime.formatted(date: .abbreviated, time: .shortened))
                         }
                     }
+                    .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.secondary.opacity(0.1))
                     .cornerRadius(8)

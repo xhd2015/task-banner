@@ -167,13 +167,11 @@ struct BannerItemView: View {
                     }
                     .buttonStyle(.borderless)
                     
-                    if task.parentId == nil {
-                        Button(action: { isAddingSubTask = true }) {
-                            Image(systemName: "plus.circle")
-                                .foregroundColor(.primary)
-                        }
-                        .buttonStyle(.borderless)
+                    Button(action: { isAddingSubTask = true }) {
+                        Image(systemName: "plus.circle")
+                            .foregroundColor(.primary)
                     }
+                    .buttonStyle(.borderless)
                 }
             }
             
