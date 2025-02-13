@@ -39,7 +39,7 @@ struct task_spannerApp: App {
         .windowResizability(.contentSize)
         .defaultSize(width: 0, height: 0)
         
-        MenuBarExtra("Task Spanner", systemImage: "clock") {
+        MenuBarExtra("Task Spanner", systemImage: "list.clipboard") {
             TaskListView()
                 .environmentObject(taskManager)
                 .environmentObject(appState)

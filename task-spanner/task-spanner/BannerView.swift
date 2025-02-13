@@ -7,6 +7,7 @@ struct BannerView: View {
     @State private var editingText: String = ""
     @State private var showOnlyUnfinished: Bool = true
     @State private var recentlyFinishedTasks: Set<UUID> = []
+    @State private var mode: TaskMode = .work
     @FocusState private var isEditing: Bool
     
     var filteredTasks: [ActiveTask] {
@@ -19,8 +20,9 @@ struct BannerView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Add toggle button at the top
+            // Updated top bar with mode switch
             HStack {
+                // Existing toggle button
                 Button(action: { showOnlyUnfinished.toggle() }) {
                     Image(systemName: showOnlyUnfinished ? "checklist.unchecked" : "checklist")
                         .foregroundColor(.secondary)
@@ -28,9 +30,13 @@ struct BannerView: View {
                 .buttonStyle(.plain)
                 .padding(.trailing)
                 .padding(.vertical, 8)
-
+                
+                // Add mode switch
+                ModeSwitcher(mode: $mode)
+                
                 Spacer()
             }
+            .padding(.horizontal)
             
             ScrollView(.vertical, showsIndicators: true) {
                 VStack(spacing: 0) {
@@ -70,6 +76,36 @@ struct BannerView: View {
             return true
         }
         return task.subTasks.contains { filterUnfinishedTasks($0) }
+    }
+}
+
+private struct ModeSwitcher: View {
+    @Binding var mode: TaskMode
+    
+    var body: some View {
+        Menu {
+            ForEach(TaskMode.allCases) { mode in
+                Button(action: { self.mode = mode }) {
+                    HStack {
+                        Text(mode.rawValue)
+                        if self.mode == mode {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 2) {
+                Text(mode.rawValue)
+                    .foregroundColor(.primary)
+                    .font(.subheadline)
+                Image(systemName: "chevron.down")
+                    .foregroundColor(.secondary)
+                    .font(.caption2)
+            }
+            .padding(.horizontal, 1)
+            .padding(.vertical, 2)
+        }
     }
 }
 
@@ -150,4 +186,12 @@ extension View {
             }
         }
     }
+}
+
+// Add this enum at the bottom of the file
+enum TaskMode: String, CaseIterable, Identifiable {
+    case work = "WORK"
+    case life = "LIFE"
+    
+    var id: Self { self }
 } 
