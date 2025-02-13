@@ -8,6 +8,50 @@ struct TaskDetailView: View {
     @State private var editingNoteText: String = ""
     @FocusState private var isEditingNote: Bool
     
+    private func renderNoteText(_ text: String) -> some View {
+        let components = extractLinksAndText(from: text)
+        return HStack(alignment: .center, spacing: 4) {
+            ForEach(components.indices, id: \.self) { index in
+                let component = components[index]
+                if let url = URL(string: component), component.lowercased().hasPrefix("http") {
+                    Link(destination: url) {
+                        Image(systemName: "link.circle.fill")
+                            .foregroundColor(.blue)
+                            .font(.system(size: 16))
+                    }
+                } else {
+                    Text(component)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+    }
+    
+    private func extractLinksAndText(from text: String) -> [String] {
+        let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
+        var components: [String] = []
+        var currentIndex = text.startIndex
+        
+        detector?.enumerateMatches(in: text, range: NSRange(text.startIndex..., in: text)) { match, _, _ in
+            if let match = match, let range = Range(match.range, in: text) {
+                // Add text before the link if any
+                if currentIndex < range.lowerBound {
+                    components.append(String(text[currentIndex..<range.lowerBound]))
+                }
+                // Add the link
+                components.append(String(text[range]))
+                currentIndex = range.upperBound
+            }
+        }
+        
+        // Add remaining text after the last link if any
+        if currentIndex < text.endIndex {
+            components.append(String(text[currentIndex...]))
+        }
+        
+        return components.filter { !$0.isEmpty }
+    }
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
@@ -103,8 +147,7 @@ struct TaskDetailView: View {
                                 HStack(alignment: .top) {
                                     Text("•")
                                         .foregroundColor(.secondary)
-                                    Text(task.notes[index])
-                                        .fixedSize(horizontal: false, vertical: true)
+                                    renderNoteText(task.notes[index])
                                     Spacer()
                                     Button(action: { startEditing(index) }) {
                                         Image(systemName: "pencil.circle")
