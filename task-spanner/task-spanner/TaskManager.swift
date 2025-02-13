@@ -15,9 +15,10 @@ struct ActiveTask: Identifiable, Codable {
     var parentId: UUID?  // Add this field to track parent task
     var subTasks: [ActiveTask]  // New field
     var status: TaskStatus  // New field
+    var notes: [String]  // New field for storing notes
     
     enum CodingKeys: CodingKey {
-        case id, title, startTime, parentId, subTasks, status
+        case id, title, startTime, parentId, subTasks, status, notes
     }
     
     init(title: String, startTime: Date = Date(), parentId: UUID? = nil) {
@@ -27,6 +28,7 @@ struct ActiveTask: Identifiable, Codable {
         self.parentId = parentId
         self.subTasks = []
         self.status = .created
+        self.notes = []  // Initialize empty notes array
     }
     
     // Add decoder init to handle legacy data
@@ -39,6 +41,7 @@ struct ActiveTask: Identifiable, Codable {
         subTasks = try container.decode([ActiveTask].self, forKey: .subTasks)
         // Default to .created if status is not present in the data
         status = try container.decodeIfPresent(TaskStatus.self, forKey: .status) ?? .created
+        notes = try container.decodeIfPresent([String].self, forKey: .notes) ?? []  // Default to empty array if notes not present
     }
 }
 
@@ -385,6 +388,76 @@ class TaskManager: ObservableObject, @unchecked Sendable {
         // Try to find in deeper levels
         for i in subTasks.indices {
             if moveSubTask(in: &subTasks[i].subTasks, taskId: taskId, direction: direction) {
+                return true
+            }
+        }
+        
+        return false
+    }
+    
+    func addNote(to task: ActiveTask, note: String) {
+        // First try to find and update in root tasks
+        if let index = tasks.firstIndex(where: { $0.id == task.id }) {
+            tasks[index].notes.append(note)
+            return
+        }
+        
+        // If not found in root tasks, search and update in subtasks
+        for parentIndex in tasks.indices {
+            if addNoteToSubTask(in: &tasks[parentIndex].subTasks, taskId: task.id, note: note) {
+                // Force a view update
+                self.objectWillChange.send()
+                break
+            }
+        }
+    }
+    
+    func editNote(in task: ActiveTask, at index: Int, newText: String) {
+        // First try to find and update in root tasks
+        if let taskIndex = tasks.firstIndex(where: { $0.id == task.id }) {
+            guard index < tasks[taskIndex].notes.count else { return }
+            tasks[taskIndex].notes[index] = newText
+            return
+        }
+        
+        // If not found in root tasks, search and update in subtasks
+        for parentIndex in tasks.indices {
+            if editNoteInSubTask(in: &tasks[parentIndex].subTasks, taskId: task.id, noteIndex: index, newText: newText) {
+                // Force a view update
+                self.objectWillChange.send()
+                break
+            }
+        }
+    }
+    
+    private func editNoteInSubTask(in subTasks: inout [ActiveTask], taskId: UUID, noteIndex: Int, newText: String) -> Bool {
+        // Try to find and update the task in current level
+        if let index = subTasks.firstIndex(where: { $0.id == taskId }) {
+            guard noteIndex < subTasks[index].notes.count else { return false }
+            subTasks[index].notes[noteIndex] = newText
+            return true
+        }
+        
+        // Recursively search in deeper levels
+        for index in subTasks.indices {
+            if editNoteInSubTask(in: &subTasks[index].subTasks, taskId: taskId, noteIndex: noteIndex, newText: newText) {
+                return true
+            }
+        }
+        
+        return false
+    }
+    
+    private func addNoteToSubTask(in subTasks: inout [ActiveTask], taskId: UUID, note: String) -> Bool {
+        // Try to find and update the task in current level
+        if let index = subTasks.firstIndex(where: { $0.id == taskId }) {
+            subTasks[index].notes.append(note)
+            return true
+        }
+        
+        // Recursively search in deeper levels
+        for index in subTasks.indices {
+            if addNoteToSubTask(in: &subTasks[index].subTasks, taskId: taskId, note: note) {
                 return true
             }
         }

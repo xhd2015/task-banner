@@ -1,5 +1,7 @@
 # Swift
 
+## Padding
+
 ` .padding(.horizontal)`: 
 
 ```
@@ -19,6 +21,25 @@ With .padding(.horizontal):
 Default padding space is 16
 ```
 
+## @State
+```swift
+@State private var editingText: String = ""
+```
+
+When this value changes, SwiftUI knows to update the view
+
+## Binding
+`TextField("Task", text: $editingText)  // Can both read AND write the value`
+
+The $ is needed when:
+- You're using controls that need to both read and modify the value (like TextField)
+- You want to pass the state to a child view that needs to modify it
+
+The `TextField` contains the following declaration:
+
+```swift
+let binding: Binding<String>  // This is what $editingText creates
+```
 
 # Interesting Cursor
 
