@@ -297,13 +297,30 @@ class TaskManager: ObservableObject, @unchecked Sendable {
         print("Adding subtask '\(title)' to parent task '\(parentTask.title)' (id: \(parentTask.id))")
         let subTask = ActiveTask(title: title, parentId: parentTask.id)
         
-        if let parentIndex = tasks.firstIndex(where: { $0.id == parentTask.id }) {
-            tasks[parentIndex].subTasks.append(subTask)
-            print("Added subtask. Parent now has \(tasks[parentIndex].subTasks.count) subtasks")
+        // Try to find and update the task at any nesting level
+        if addSubTaskToParent(subTask, parentId: parentTask.id, in: &tasks) {
+            print("Added subtask to parent task '\(parentTask.title)'")
             try await saveTasksToStorage()
         } else {
             print("Failed to find parent task with id: \(parentTask.id)")
         }
+    }
+    
+    private func addSubTaskToParent(_ subTask: ActiveTask, parentId: UUID, in tasks: inout [ActiveTask]) -> Bool {
+        // Try to find the parent task in current level
+        if let index = tasks.firstIndex(where: { $0.id == parentId }) {
+            tasks[index].subTasks.append(subTask)
+            return true
+        }
+        
+        // Recursively search in deeper levels
+        for index in tasks.indices {
+            if addSubTaskToParent(subTask, parentId: parentId, in: &tasks[index].subTasks) {
+                return true
+            }
+        }
+        
+        return false
     }
     
     // Update the main tasks array to only show root tasks
