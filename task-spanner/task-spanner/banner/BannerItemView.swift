@@ -91,18 +91,10 @@ struct BannerItemView: View {
                 }
             
             HStack(spacing: 8) {
-                Button(action: commitEdit) {
-                    Image(systemName: "checkmark.circle")
-                        .foregroundColor(.green)
-                }
-                .buttonStyle(.borderless)
-                .disabled(editingText.isEmpty)
+                IconButton(systemName: "checkmark.circle", action: commitEdit, color: .green)
+                    .disabled(editingText.isEmpty)
                 
-                Button(action: cancelEdit) {
-                    Image(systemName: "xmark.circle")
-                        .foregroundColor(.red)
-                }
-                .buttonStyle(.borderless)
+                IconButton(systemName: "xmark.circle", action: cancelEdit, color: .red)
             }
         }
         .padding(.horizontal, 16)
@@ -121,11 +113,12 @@ struct BannerItemView: View {
                         .foregroundColor(.secondary.opacity(0.5))
                 }
                 
-                Button(action: toggleStatus) {
-                    Image(systemName: task.status == .done || recentlyFinishedTasks.contains(task.id) ? "checkmark.square.fill" : "square")
-                        .foregroundColor(task.status == .done || recentlyFinishedTasks.contains(task.id) ? .green : .primary)
-                }
-                .buttonStyle(.plain)
+                IconButton(
+                    systemName: task.status == .done || recentlyFinishedTasks.contains(task.id) ? "checkmark.square.fill" : "square",
+                    action: toggleStatus,
+                    color: task.status == .done || recentlyFinishedTasks.contains(task.id) ? .green : .primary,
+                    addTrailingPadding: false
+                )
             }
             
             Text(task.title)
@@ -136,7 +129,7 @@ struct BannerItemView: View {
             Spacer()
             
             if isHovered {
-                HStack(spacing: 8) {
+                HStack(spacing: 2) {
                     Group {
                         let isFirst = task.parentId == nil ? 
                             taskManager.tasks.first?.id == task.id :
@@ -146,32 +139,34 @@ struct BannerItemView: View {
                             taskManager.tasks.last?.id == task.id :
                             taskManager.tasks.first(where: { $0.id == task.parentId })?.subTasks.last?.id == task.id
                         
-                        Button(action: { taskManager.moveTask(task, direction: .up) }) {
-                            Image(systemName: "arrow.up")
-                                .foregroundColor(isFirst ? .secondary : .primary)
-                        }
-                        .buttonStyle(.borderless)
+                        IconButton(
+                            systemName: "arrow.up",
+                            action: { taskManager.moveTask(task, direction: .up) },
+                            color: isFirst ? .secondary : .primary,
+                            addTrailingPadding: false
+                        )
                         .disabled(isFirst)
                         
-                        Button(action: { taskManager.moveTask(task, direction: .down) }) {
-                            Image(systemName: "arrow.down")
-                                .foregroundColor(isLast ? .secondary : .primary)
-                        }
-                        .buttonStyle(.borderless)
+                        IconButton(
+                            systemName: "arrow.down",
+                            action: { taskManager.moveTask(task, direction: .down) },
+                            color: isLast ? .secondary : .primary,
+                            addTrailingPadding: false
+                        )
                         .disabled(isLast)
                     }
                     
-                    Button(action: startEditing) {
-                        Image(systemName: "square.and.pencil")
-                            .foregroundColor(.primary)
-                    }
-                    .buttonStyle(.borderless)
+                    IconButton(
+                        systemName: "square.and.pencil",
+                        action: startEditing,
+                        addTrailingPadding: false
+                    )
                     
-                    Button(action: { isAddingSubTask = true }) {
-                        Image(systemName: "plus.circle")
-                            .foregroundColor(.primary)
-                    }
-                    .buttonStyle(.borderless)
+                    IconButton(
+                        systemName: "plus.circle",
+                        action: { isAddingSubTask = true },
+                        addTrailingPadding: false
+                    )
                 }
             }
             
@@ -179,14 +174,13 @@ struct BannerItemView: View {
                 .foregroundColor(.secondary)
                 .font(.caption)
             
-            Button(action: {
-                onTaskSelect(task.id)
-            }) {
-                Image(systemName: "chevron.right")
-                    .foregroundColor(.secondary)
-                    .font(.caption)
-            }
-            .buttonStyle(.plain)
+            IconButton(
+                systemName: "chevron.right",
+                action: { onTaskSelect(task.id) },
+                color: .secondary,
+                font: .caption,
+                addTrailingPadding: false
+            )
         }
         .padding(.leading, CGFloat(indentLevel) * 16)
         .padding(.horizontal, 16)

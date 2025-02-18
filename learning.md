@@ -54,6 +54,20 @@ private func renderNoteText(_ text: String)
 renderNoteText("Hello")  // No need to include the parameter label 'text'
 ```
 
+## @EnvironmentObject
+@EnvironmentObject is a property wrapper in SwiftUI that provides a way to share data across your entire app's view hierarchy. Here's what makes it special:
+- Dependency Injection: It's a form of dependency injection where you can pass data down through the view hierarchy without explicitly passing it through each view's initializer.
+- Observable: It works with ObservableObject classes, which means the views automatically update when the data changes.
+- Shared State: Multiple views can access the same instance of the object, making it perfect for sharing app-wide state.
+
+Important Property: if a parent view has an EnvironmentObject, all its descendent children automatically has this Env.
+
+```
+Let me explain @EnvironmentObject in SwiftUI:
+
+
+```
+
 # Interesting Cursor
 
 ## Cursor can draw text-based image!

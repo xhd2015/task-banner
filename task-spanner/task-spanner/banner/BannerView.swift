@@ -61,51 +61,13 @@ struct BannerView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Top bar
-            HStack {
-                if routeManager.current.path == .detail {
-                    Button(action: { 
-                        withAnimation {
-                            routeManager.navigateBack()
-                        }
-                    }) {
-                        Image(systemName: "chevron.left")
-                            .foregroundColor(.secondary)
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.trailing)
-                } else {
-                    Button(action: { showOnlyUnfinished.toggle() }) {
-                        Image(systemName: showOnlyUnfinished ? "checklist.unchecked" : "checklist")
-                            .foregroundColor(.secondary)
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.trailing)
-                }
-                
-                if routeManager.current.path == .list {
-                    ModeSwitcher(mode: $mode)
-                } else {
-                    Text("Task Details")
-                        .foregroundColor(.primary)
-                        .font(.subheadline)
-                }
-                
-                Spacer()
-                
-                Button(action: { 
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        isCollapsed.toggle()
-                    }
-                }) {
-                    Image(systemName: isCollapsed ? "chevron.down" : "chevron.up")
-                        .foregroundColor(.secondary)
-                        .font(.caption)
-                }
-                .buttonStyle(.plain)
-            }
-            .padding(.horizontal)
-            .padding(.vertical, 8)
+            // Replace the top bar implementation with the new component
+            BannerTopBar(
+                isCollapsed: $isCollapsed,
+                showOnlyUnfinished: $showOnlyUnfinished,
+                mode: $mode
+            )
+            .environmentObject(routeManager)
             
             if !isCollapsed {
                 Group {
@@ -197,35 +159,7 @@ struct BannerView: View {
     }
 }
 
-private struct ModeSwitcher: View {
-    @Binding var mode: TaskMode
-    
-    var body: some View {
-        Menu {
-            ForEach(TaskMode.allCases) { mode in
-                Button(action: { self.mode = mode }) {
-                    HStack {
-                        Text(mode.rawValue)
-                        if self.mode == mode {
-                            Image(systemName: "checkmark")
-                        }
-                    }
-                }
-            }
-        } label: {
-            HStack(spacing: 2) {
-                Text(mode.rawValue)
-                    .foregroundColor(.primary)
-                    .font(.subheadline)
-                Image(systemName: "chevron.down")
-                    .foregroundColor(.secondary)
-                    .font(.caption2)
-            }
-            .padding(.horizontal, 1)
-            .padding(.vertical, 2)
-        }
-    }
-}
+// Move ModeSwitcher to BannerTopBar.swift
 
 private struct TaskItemWithSubtasks: View {
     @EnvironmentObject var taskManager: TaskManager

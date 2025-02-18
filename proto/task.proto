@@ -1,0 +1,121 @@
+syntax = "proto3";
+
+package taskspanner.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+
+option go_package = "server/proto/taskspanner/v1;taskspannerv1";
+
+// Task status represents the current state of a task
+enum TaskStatus {
+  // Default status when task is first created
+  TASK_STATUS_CREATED = 0;
+  // Task is marked as completed
+  TASK_STATUS_DONE = 1;
+}
+
+// Task represents a single task item with optional subtasks
+message Task {
+  // Unique identifier for the task
+  string id = 1;
+  // Title/description of the task
+  string title = 2;
+  // When the task was started
+  google.protobuf.Timestamp start_time = 3;
+  // Optional parent task ID for hierarchical structure
+  optional string parent_id = 4;
+  // List of sub-tasks under this task
+  repeated Task sub_tasks = 5;
+  // Current status of the task
+  TaskStatus status = 6;
+  // List of notes attached to the task
+  repeated string notes = 7;
+}
+
+// Request message for creating a new task
+message CreateTaskRequest {
+  // Title of the new task
+  string title = 1;
+  // Optional parent task ID if this is a subtask
+  optional string parent_id = 2;
+}
+
+// Request message for updating an existing task
+message UpdateTaskRequest {
+  // ID of the task to update
+  string task_id = 1;
+  // New title for the task, if being updated
+  optional string title = 2;
+  // New status for the task, if being updated
+  optional TaskStatus status = 3;
+}
+
+// Request message for adding a note to a task
+message AddNoteRequest {
+  // ID of the task to add the note to
+  string task_id = 1;
+  // Content of the note
+  string note = 2;
+}
+
+// Request message for getting a specific task
+message GetTaskRequest {
+  // ID of the task to retrieve
+  string task_id = 1;
+}
+
+// Response message containing a list of tasks
+message ListTasksResponse {
+  // List of tasks
+  repeated Task tasks = 1;
+}
+
+// Service definition for task management
+service TaskService {
+  // Get a list of all tasks
+  rpc ListTasks(google.protobuf.Empty) returns (ListTasksResponse) {
+    option (google.api.http) = {
+      get: "/v1/tasks"
+    };
+  }
+  
+  // Get a specific task by ID
+  rpc GetTask(GetTaskRequest) returns (Task) {
+    option (google.api.http) = {
+      get: "/v1/tasks/{task_id}"
+    };
+  }
+  
+  // Create a new task
+  rpc CreateTask(CreateTaskRequest) returns (Task) {
+    option (google.api.http) = {
+      post: "/v1/tasks"
+      body: "*"
+    };
+  }
+  
+  // Update an existing task
+  rpc UpdateTask(UpdateTaskRequest) returns (Task) {
+    option (google.api.http) = {
+      patch: "/v1/tasks/{task_id}"
+      body: "*"
+    };
+  }
+  
+  // Add a note to an existing task
+  rpc AddNote(AddNoteRequest) returns (Task) {
+    option (google.api.http) = {
+      post: "/v1/tasks/{task_id}/notes"
+      body: "*"
+    };
+  }
+  
+  // Delete a task
+  rpc DeleteTask(GetTaskRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/tasks/{task_id}"
+    };
+  }
+}

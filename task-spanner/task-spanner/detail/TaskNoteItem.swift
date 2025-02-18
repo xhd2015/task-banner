@@ -79,15 +79,19 @@ struct TaskNoteItem: View {
                     .focused($isEditingNote)
                     .onSubmit(commitEdit)
                 
-                Button(action: commitEdit) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                }
+                IconButton(
+                    systemName: "checkmark.circle.fill",
+                    action: commitEdit,
+                    color: .green,
+                    addTrailingPadding: false
+                )
                 
-                Button(action: cancelEdit) {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(.red)
-                }
+                IconButton(
+                    systemName: "xmark.circle.fill",
+                    action: cancelEdit,
+                    color: .red,
+                    addTrailingPadding: false
+                )
             }
             .padding(.vertical, 4)
         } else {
@@ -96,10 +100,12 @@ struct TaskNoteItem: View {
                     .foregroundColor(.secondary)
                 renderNoteText(text)
                 Spacer()
-                Button(action: startEditing) {
-                    Image(systemName: "pencil.circle")
-                        .foregroundColor(.blue)
-                }
+                IconButton(
+                    systemName: "pencil.circle",
+                    action: startEditing,
+                    color: .blue,
+                    addTrailingPadding: false
+                )
             }
             .padding(.vertical, 4)
         }

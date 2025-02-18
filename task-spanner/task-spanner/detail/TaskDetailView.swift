@@ -62,13 +62,14 @@ struct TaskDetailView: View {
                         ForEach(task.subTasks) { subtask in
                             HStack(spacing: 8) {
                                 // Status toggle button
-                                Button(action: {
-                                    taskManager.updateTaskStatus(subtask, newStatus: subtask.status == .done ? .created : .done)
-                                }) {
-                                    Image(systemName: subtask.status == .done ? "checkmark.square.fill" : "square")
-                                        .foregroundColor(subtask.status == .done ? .green : .primary)
-                                }
-                                .buttonStyle(.plain)
+                                IconButton(
+                                    systemName: subtask.status == .done ? "checkmark.square.fill" : "square",
+                                    action: {
+                                        taskManager.updateTaskStatus(subtask, newStatus: subtask.status == .done ? .created : .done)
+                                    },
+                                    color: subtask.status == .done ? .green : .primary,
+                                    addTrailingPadding: false
+                                )
                                 
                                 // Navigation button for the rest of the row
                                 Button(action: {
@@ -81,9 +82,17 @@ struct TaskDetailView: View {
                                             .strikethrough(subtask.status == .done)
                                             .foregroundColor(.primary)
                                         Spacer()
-                                        Image(systemName: "chevron.right")
-                                            .foregroundColor(.secondary)
-                                            .font(.caption)
+                                        IconButton(
+                                            systemName: "chevron.right",
+                                            action: {
+                                                withAnimation {
+                                                    routeManager.navigateToDetail(taskId: subtask.id)
+                                                }
+                                            },
+                                            color: .secondary,
+                                            font: .caption,
+                                            addTrailingPadding: false
+                                        )
                                     }
                                 }
                                 .buttonStyle(.plain)

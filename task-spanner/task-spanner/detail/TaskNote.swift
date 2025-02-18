@@ -54,10 +54,12 @@ struct TaskNote: View {
                 TextField("Add a note...", text: $newNote)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                 
-                Button(action: addNote) {
-                    Image(systemName: "plus.circle.fill")
-                        .foregroundColor(.blue)
-                }
+                IconButton(
+                    systemName: "plus.circle.fill",
+                    action: addNote,
+                    color: .blue,
+                    addTrailingPadding: false
+                )
                 .disabled(newNote.isEmpty)
             }
             
