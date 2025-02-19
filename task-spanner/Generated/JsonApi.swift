@@ -7,10 +7,10 @@ enum TaskStatus: Int, Codable {
 }
 
 struct Task: Codable, Identifiable {
-    let id: String
+    let id: Int64
     var title: String
     var startTime: Date
-    var parentId: String?
+    var parentId: Int64?
     var subTasks: [Task]
     var status: TaskStatus
     var notes: [String]
@@ -48,12 +48,12 @@ class JsonApi {
         return try loadTasks()
     }
     
-    func getTask(id: String) throws -> Task? {
+    func getTask(id: Int64) throws -> Task? {
         let tasks = try loadTasks()
         return findTask(id: id, in: tasks)
     }
     
-    private func findTask(id: String, in tasks: [Task]) -> Task? {
+    private func findTask(id: Int64, in tasks: [Task]) -> Task? {
         for task in tasks {
             if task.id == id {
                 return task
@@ -65,10 +65,10 @@ class JsonApi {
         return nil
     }
     
-    func createTask(title: String, parentId: String? = nil) throws -> Task {
+    func createTask(title: String, parentId: Int64? = nil) throws -> Task {
         var tasks = try loadTasks()
         let newTask = Task(
-            id: UUID().uuidString,
+            id: Int64.random(in: 1...Int64.max),
             title: title,
             startTime: Date(),
             parentId: parentId,
@@ -91,7 +91,7 @@ class JsonApi {
         return newTask
     }
     
-    func updateTask(id: String, title: String? = nil, status: TaskStatus? = nil) throws -> Task? {
+    func updateTask(id: Int64, title: String? = nil, status: TaskStatus? = nil) throws -> Task? {
         var tasks = try loadTasks()
         var updatedTask: Task?
         
@@ -111,7 +111,7 @@ class JsonApi {
         return updatedTask
     }
     
-    func addNote(taskId: String, note: String) throws -> Task? {
+    func addNote(taskId: Int64, note: String) throws -> Task? {
         var tasks = try loadTasks()
         var updatedTask: Task?
         
@@ -126,14 +126,14 @@ class JsonApi {
         return updatedTask
     }
     
-    func deleteTask(id: String) throws {
+    func deleteTask(id: Int64) throws {
         var tasks = try loadTasks()
         tasks = deleteTaskRecursively(tasks, taskId: id)
         try saveTasks(tasks)
     }
     
     // MARK: - Helper Methods
-    private func updateTasksRecursively(_ tasks: [Task], taskId: String, update: (Task) -> Task) -> [Task] {
+    private func updateTasksRecursively(_ tasks: [Task], taskId: Int64, update: (Task) -> Task) -> [Task] {
         return tasks.map { task in
             if task.id == taskId {
                 return update(task)
@@ -144,7 +144,7 @@ class JsonApi {
         }
     }
     
-    private func updateTasksRecursively(_ tasks: [Task], parentId: String, update: (Task) -> Task) -> [Task] {
+    private func updateTasksRecursively(_ tasks: [Task], parentId: Int64, update: (Task) -> Task) -> [Task] {
         return tasks.map { task in
             if task.id == parentId {
                 return update(task)
@@ -155,7 +155,7 @@ class JsonApi {
         }
     }
     
-    private func deleteTaskRecursively(_ tasks: [Task], taskId: String) -> [Task] {
+    private func deleteTaskRecursively(_ tasks: [Task], taskId: Int64) -> [Task] {
         var updatedTasks = tasks
         if let index = updatedTasks.firstIndex(where: { $0.id == taskId }) {
             updatedTasks.remove(at: index)

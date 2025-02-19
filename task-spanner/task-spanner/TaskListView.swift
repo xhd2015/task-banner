@@ -66,7 +66,7 @@ struct TaskListView: View {
     
     private func addTask() {
         if !newTaskTitle.isEmpty {
-            taskManager.addTask(ActiveTask(title: newTaskTitle, startTime: Date()))
+            taskManager.addTask(ActiveTask(title: newTaskTitle, startTime: Date(), id: 0))
             newTaskTitle = ""
         }
     }

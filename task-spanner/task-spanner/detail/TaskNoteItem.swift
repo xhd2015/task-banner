@@ -19,6 +19,13 @@ struct TaskNoteItem: View {
                         Image(systemName: "link.circle.fill")
                             .foregroundColor(.blue)
                             .font(.system(size: 16))
+                            .onHover { hovering in
+                                if hovering {
+                                    NSCursor.pointingHand.push()
+                                } else {
+                                    NSCursor.pop()
+                                }
+                            }
                     }
                 } else {
                     Text(component)

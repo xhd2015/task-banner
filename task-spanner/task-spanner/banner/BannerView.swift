@@ -2,7 +2,7 @@ import SwiftUI
 
 // Add this struct near other route-related types
 struct RouteParams: Equatable {
-    var taskId: UUID?
+    var taskId: Int64?
     
     static func == (lhs: RouteParams, rhs: RouteParams) -> Bool {
         lhs.taskId == rhs.taskId
@@ -31,7 +31,7 @@ class RouteManager: ObservableObject {
         }
     }
     
-    func navigateToDetail(taskId: UUID) {
+    func navigateToDetail(taskId: Int64) {
         navigate(to: RouteState(
             path: .detail,
             params: RouteParams(taskId: taskId)
@@ -43,10 +43,10 @@ struct BannerView: View {
     @EnvironmentObject var taskManager: TaskManager
     @StateObject private var routeManager = RouteManager()
     @State private var isDragging: Bool = false
-    @State private var editingTaskId: UUID? = nil
+    @State private var editingTaskId: Int64? = nil
     @State private var editingText: String = ""
     @State private var showOnlyUnfinished: Bool = true
-    @State private var recentlyFinishedTasks: Set<UUID> = []
+    @State private var recentlyFinishedTasks: Set<Int64> = []
     @State private var mode: TaskMode = .work
     @State private var isCollapsed: Bool = false
     @FocusState private var isEditing: Bool
@@ -135,7 +135,7 @@ struct BannerView: View {
         }
     }
     
-    private func findTask(id: UUID) -> ActiveTask? {
+    private func findTask(id: Int64) -> ActiveTask? {
         func search(in tasks: [ActiveTask]) -> ActiveTask? {
             for task in tasks {
                 if task.id == id {
@@ -164,16 +164,16 @@ struct BannerView: View {
 private struct TaskItemWithSubtasks: View {
     @EnvironmentObject var taskManager: TaskManager
     let task: ActiveTask
-    @Binding var editingTaskId: UUID?
+    @Binding var editingTaskId: Int64?
     @Binding var editingText: String
     @FocusState.Binding var isEditing: Bool
     @Environment(\.showOnlyUnfinished) private var showOnlyUnfinished
     let indentLevel: Int
-    @State private var recentlyFinishedTasks: Set<UUID> = []
-    @Binding var selectedTaskId: UUID?
-    let onTaskSelect: (UUID) -> Void
+    @State private var recentlyFinishedTasks: Set<Int64> = []
+    @Binding var selectedTaskId: Int64?
+    let onTaskSelect: (Int64) -> Void
     
-    init(task: ActiveTask, editingTaskId: Binding<UUID?>, editingText: Binding<String>, isEditing: FocusState<Bool>.Binding, indentLevel: Int = 0, selectedTaskId: Binding<UUID?>, onTaskSelect: @escaping (UUID) -> Void) {
+    init(task: ActiveTask, editingTaskId: Binding<Int64?>, editingText: Binding<String>, isEditing: FocusState<Bool>.Binding, indentLevel: Int = 0, selectedTaskId: Binding<Int64?>, onTaskSelect: @escaping (Int64) -> Void) {
         self.task = task
         self._editingTaskId = editingTaskId
         self._editingText = editingText
@@ -235,7 +235,7 @@ extension EnvironmentValues {
 }
 
 extension View {
-    func delayedDisappearance(taskId: UUID, isFinished: Bool, delay: Double = 5.0, onFinished: @escaping (UUID) -> Void) -> some View {
+    func delayedDisappearance(taskId: Int64, isFinished: Bool, delay: Double = 5.0, onFinished: @escaping (Int64) -> Void) -> some View {
         self.onChange(of: isFinished) { finished in
             if finished {
                 onFinished(taskId)

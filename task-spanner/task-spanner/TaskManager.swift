@@ -9,10 +9,10 @@ enum TaskStatus: String, Codable {
 }
 
 struct ActiveTask: Identifiable, Codable {
-    let id: UUID
+    let id: Int64
     var title: String
     var startTime: Date
-    var parentId: UUID?  // Add this field to track parent task
+    var parentId: Int64?  // Changed from UUID? to Int64?
     var subTasks: [ActiveTask]  // New field
     var status: TaskStatus  // New field
     var notes: [String]  // New field for storing notes
@@ -21,23 +21,23 @@ struct ActiveTask: Identifiable, Codable {
         case id, title, startTime, parentId, subTasks, status, notes
     }
     
-    init(title: String, startTime: Date = Date(), parentId: UUID? = nil) {
-        self.id = UUID()
+    init(title: String, startTime: Date = Date(), parentId: Int64? = nil, id: Int64) {
+        self.id = id
         self.title = title
         self.startTime = startTime
         self.parentId = parentId
         self.subTasks = []
         self.status = .created
-        self.notes = []  // Initialize empty notes array
+        self.notes = []
     }
     
     // Add decoder init to handle legacy data
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(UUID.self, forKey: .id)
+        id = try container.decode(Int64.self, forKey: .id)
         title = try container.decode(String.self, forKey: .title)
         startTime = try container.decode(Date.self, forKey: .startTime)
-        parentId = try container.decodeIfPresent(UUID.self, forKey: .parentId)
+        parentId = try container.decodeIfPresent(Int64.self, forKey: .parentId)
         subTasks = try container.decode([ActiveTask].self, forKey: .subTasks)
         // Default to .created if status is not present in the data
         status = try container.decodeIfPresent(TaskStatus.self, forKey: .status) ?? .created
@@ -50,11 +50,11 @@ protocol TaskStorage {
     func saveTasks(_ tasks: [ActiveTask]) async throws
     func loadTasks() async throws -> [ActiveTask]
     func addTask(_ task: ActiveTask) async throws
-    func addSubTask(parentId: UUID, title: String) async throws
+    func addSubTask(parentId: Int64, title: String) async throws
 }
 
 // Local storage implementation
-class LocalTaskStorage: TaskStorage {
+class LocalTaskStorage: TaskStorage {    
     func saveTasks(_ tasks: [ActiveTask]) async throws {
         do {
             let encoded = try JSONEncoder().encode(tasks)
@@ -90,9 +90,9 @@ class LocalTaskStorage: TaskStorage {
         try await saveTasks(currentTasks)
     }
     
-    func addSubTask(parentId: UUID, title: String) async throws {
+    func addSubTask(parentId: Int64, title: String) async throws {
         var currentTasks = try await loadTasks()
-        let subTask = ActiveTask(title: title, parentId: parentId)
+        let subTask = ActiveTask(title: title, parentId: parentId, id: 0)
         
         // Find the parent task and add the subtask to its subTasks array
         if let parentIndex = currentTasks.firstIndex(where: { $0.id == parentId }) {
@@ -152,7 +152,7 @@ class RemoteTaskStorage: TaskStorage {
         }
     }
     
-    func addSubTask(parentId: UUID, title: String) async throws {
+    func addSubTask(parentId: Int64, title: String) async throws {
         let url = baseURL.appendingPathComponent("tasks/\(parentId)/subtasks")
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -234,11 +234,33 @@ class TaskManager: ObservableObject, @unchecked Sendable {
         bannerWindow.orderOut(nil)
     }
     
+    // Add helper method to find highest task ID
+    private func findHighestTaskId() -> Int64 {
+        var maxId: Int64 = 0
+        
+        func checkTask(_ task: ActiveTask) {
+            maxId = max(maxId, task.id)
+            for subtask in task.subTasks {
+                checkTask(subtask)
+            }
+        }
+        
+        for task in tasks {
+            checkTask(task)
+        }
+        
+        return maxId
+    }
+    
     func addTask(_ task: ActiveTask) {
         Task {
-            try? await storage.addTask(task)
+            // Create new task with sequential ID
+            let highestId = findHighestTaskId()
+            let newTask = ActiveTask(title: task.title, startTime: task.startTime, parentId: task.parentId, id: highestId + 1)
+            
+            try? await storage.addTask(newTask)
             DispatchQueue.main.async {
-                self.tasks.append(task)
+                self.tasks.append(newTask)
                 self.updateBannerVisibility()
             }
         }
@@ -276,7 +298,7 @@ class TaskManager: ObservableObject, @unchecked Sendable {
         }
     }
     
-    private func updateSubTask(in subTasks: inout [ActiveTask], taskId: UUID, newTitle: String) -> Bool {
+    private func updateSubTask(in subTasks: inout [ActiveTask], taskId: Int64, newTitle: String) -> Bool {
         // Try to find and update the task in current level
         if let index = subTasks.firstIndex(where: { $0.id == taskId }) {
             subTasks[index].title = newTitle
@@ -295,7 +317,8 @@ class TaskManager: ObservableObject, @unchecked Sendable {
     
     func addSubTask(to parentTask: ActiveTask, title: String) async throws {
         print("Adding subtask '\(title)' to parent task '\(parentTask.title)' (id: \(parentTask.id))")
-        let subTask = ActiveTask(title: title, parentId: parentTask.id)
+        let highestId = findHighestTaskId()
+        let subTask = ActiveTask(title: title, parentId: parentTask.id, id: highestId + 1)
         
         // Try to find and update the task at any nesting level
         if addSubTaskToParent(subTask, parentId: parentTask.id, in: &tasks) {
@@ -306,7 +329,7 @@ class TaskManager: ObservableObject, @unchecked Sendable {
         }
     }
     
-    private func addSubTaskToParent(_ subTask: ActiveTask, parentId: UUID, in tasks: inout [ActiveTask]) -> Bool {
+    private func addSubTaskToParent(_ subTask: ActiveTask, parentId: Int64, in tasks: inout [ActiveTask]) -> Bool {
         // Try to find the parent task in current level
         if let index = tasks.firstIndex(where: { $0.id == parentId }) {
             tasks[index].subTasks.append(subTask)
@@ -358,7 +381,7 @@ class TaskManager: ObservableObject, @unchecked Sendable {
         }
     }
     
-    private func updateSubTaskStatus(in subTasks: inout [ActiveTask], taskId: UUID, newStatus: TaskStatus) -> Bool {
+    private func updateSubTaskStatus(in subTasks: inout [ActiveTask], taskId: Int64, newStatus: TaskStatus) -> Bool {
         // Try to find and update the task in current level
         if let index = subTasks.firstIndex(where: { $0.id == taskId }) {
             subTasks[index].status = newStatus
@@ -393,7 +416,7 @@ class TaskManager: ObservableObject, @unchecked Sendable {
         }
     }
     
-    private func moveSubTask(in subTasks: inout [ActiveTask], taskId: UUID, direction: MoveDirection) -> Bool {
+    private func moveSubTask(in subTasks: inout [ActiveTask], taskId: Int64, direction: MoveDirection) -> Bool {
         if let index = subTasks.firstIndex(where: { $0.id == taskId }) {
             let newIndex = direction == .up ? index - 1 : index + 1
             if newIndex >= 0 && newIndex < subTasks.count {
@@ -447,7 +470,7 @@ class TaskManager: ObservableObject, @unchecked Sendable {
         }
     }
     
-    private func editNoteInSubTask(in subTasks: inout [ActiveTask], taskId: UUID, noteIndex: Int, newText: String) -> Bool {
+    private func editNoteInSubTask(in subTasks: inout [ActiveTask], taskId: Int64, noteIndex: Int, newText: String) -> Bool {
         // Try to find and update the task in current level
         if let index = subTasks.firstIndex(where: { $0.id == taskId }) {
             guard noteIndex < subTasks[index].notes.count else { return false }
@@ -465,7 +488,7 @@ class TaskManager: ObservableObject, @unchecked Sendable {
         return false
     }
     
-    private func addNoteToSubTask(in subTasks: inout [ActiveTask], taskId: UUID, note: String) -> Bool {
+    private func addNoteToSubTask(in subTasks: inout [ActiveTask], taskId: Int64, note: String) -> Bool {
         // Try to find and update the task in current level
         if let index = subTasks.firstIndex(where: { $0.id == taskId }) {
             subTasks[index].notes.append(note)

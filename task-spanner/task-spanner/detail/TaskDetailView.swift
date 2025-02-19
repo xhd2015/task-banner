@@ -24,90 +24,102 @@ struct TaskDetailView: View {
         }
     }
     
+    private var taskHeaderView: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: task.status == .done ? "checkmark.circle.fill" : "circle")
+                    .foregroundColor(task.status == .done ? .green : .blue)
+                    .font(.title2)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(task.title)
+                        .font(.headline)
+                        .foregroundColor(task.status == .done ? .secondary : .primary)
+                    
+                    Text(relativeTimeString(from: task.startTime))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding()
+        .background(Color.secondary.opacity(0.1))
+        .cornerRadius(8)
+    }
+    
+    private var subtasksView: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Subtasks (\(task.subTasks.count))")
+                .font(.headline)
+            
+            ForEach(task.subTasks) { subtask in
+                SubtaskRow(subtask: subtask)
+            }
+        }
+        .padding()
+        .background(Color.secondary.opacity(0.1))
+        .cornerRadius(8)
+    }
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                Group {
-                    VStack(alignment: .leading, spacing: 12) {
-                        // Task content and status
-                        HStack(alignment: .top, spacing: 12) {
-                            Image(systemName: task.status == .done ? "checkmark.circle.fill" : "circle")
-                                .foregroundColor(task.status == .done ? .green : .blue)
-                                .font(.title2)
-                            
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(task.title)
-                                    .font(.headline)
-                                    .foregroundColor(task.status == .done ? .secondary : .primary)
-                                
-                                Text(relativeTimeString(from: task.startTime))
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            
-                            Spacer()
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.secondary.opacity(0.1))
-                    .cornerRadius(8)
-                }
+                taskHeaderView
                 
                 if !task.subTasks.isEmpty {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Subtasks (\(task.subTasks.count))")
-                            .font(.headline)
-                        
-                        ForEach(task.subTasks) { subtask in
-                            HStack(spacing: 8) {
-                                // Status toggle button
-                                IconButton(
-                                    systemName: subtask.status == .done ? "checkmark.square.fill" : "square",
-                                    action: {
-                                        taskManager.updateTaskStatus(subtask, newStatus: subtask.status == .done ? .created : .done)
-                                    },
-                                    color: subtask.status == .done ? .green : .primary,
-                                    addTrailingPadding: false
-                                )
-                                
-                                // Navigation button for the rest of the row
-                                Button(action: {
-                                    withAnimation {
-                                        routeManager.navigateToDetail(taskId: subtask.id)
-                                    }
-                                }) {
-                                    HStack {
-                                        Text(subtask.title)
-                                            .strikethrough(subtask.status == .done)
-                                            .foregroundColor(.primary)
-                                        Spacer()
-                                        IconButton(
-                                            systemName: "chevron.right",
-                                            action: {
-                                                withAnimation {
-                                                    routeManager.navigateToDetail(taskId: subtask.id)
-                                                }
-                                            },
-                                            color: .secondary,
-                                            font: .caption,
-                                            addTrailingPadding: false
-                                        )
-                                    }
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
-                    }
-                    .padding()
-                    .background(Color.secondary.opacity(0.1))
-                    .cornerRadius(8)
+                    subtasksView
                 }
                 
-                // Notes Section
                 TaskNote(task: task)
             }
             .padding()
+        }
+    }
+}
+
+private struct SubtaskRow: View {
+    @EnvironmentObject var taskManager: TaskManager
+    @EnvironmentObject var routeManager: RouteManager
+    let subtask: ActiveTask
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            IconButton(
+                systemName: subtask.status == .done ? "checkmark.square.fill" : "square",
+                action: {
+                    taskManager.updateTaskStatus(subtask, newStatus: subtask.status == .done ? .created : .done)
+                },
+                color: subtask.status == .done ? .green : .primary,
+                addTrailingPadding: false
+            )
+            
+            Button(action: {
+                withAnimation {
+                    routeManager.navigateToDetail(taskId: subtask.id)
+                }
+            }) {
+                HStack {
+                    Text(subtask.title)
+                        .strikethrough(subtask.status == .done)
+                        .foregroundColor(.primary)
+                    Spacer()
+                    IconButton(
+                        systemName: "chevron.right",
+                        action: {
+                            withAnimation {
+                                routeManager.navigateToDetail(taskId: subtask.id)
+                            }
+                        },
+                        color: .secondary,
+                        font: .caption,
+                        addTrailingPadding: false
+                    )
+                }
+            }
+            .buttonStyle(.plain)
         }
     }
 } 

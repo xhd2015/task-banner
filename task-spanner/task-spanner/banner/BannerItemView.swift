@@ -4,7 +4,7 @@ struct BannerItemView: View {
     @EnvironmentObject var taskManager: TaskManager
     let task: ActiveTask
     
-    @Binding var editingTaskId: UUID?
+    @Binding var editingTaskId: Int64?
     @Binding var editingText: String
     @FocusState.Binding var isEditing: Bool
     @State private var isHovered: Bool = false
@@ -12,18 +12,18 @@ struct BannerItemView: View {
     @State private var newSubTaskText: String = ""
     @FocusState private var isSubTaskEditing: Bool
     let indentLevel: Int
-    let onTaskSelect: (UUID) -> Void
-    @Binding var recentlyFinishedTasks: Set<UUID>
+    let onTaskSelect: (Int64) -> Void
+    @Binding var recentlyFinishedTasks: Set<Int64>
     
     @Environment(\.showOnlyUnfinished) private var showOnlyUnfinished
     
     init(task: ActiveTask, 
-         editingTaskId: Binding<UUID?>, 
+         editingTaskId: Binding<Int64?>, 
          editingText: Binding<String>, 
          isEditing: FocusState<Bool>.Binding, 
          indentLevel: Int = 0,
-         onTaskSelect: @escaping (UUID) -> Void,
-         recentlyFinishedTasks: Binding<Set<UUID>> = .constant([])) {
+         onTaskSelect: @escaping (Int64) -> Void,
+         recentlyFinishedTasks: Binding<Set<Int64>> = .constant([])) {
         self.task = task
         self._editingTaskId = editingTaskId
         self._editingText = editingText
