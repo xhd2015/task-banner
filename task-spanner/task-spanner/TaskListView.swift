@@ -66,14 +66,14 @@ struct TaskListView: View {
     
     private func addTask() {
         if !newTaskTitle.isEmpty {
-            taskManager.addTask(ActiveTask(title: newTaskTitle, startTime: Date(), id: 0))
+            taskManager.addTask(TaskItem(title: newTaskTitle, startTime: Date(), id: 0))
             newTaskTitle = ""
         }
     }
 }
 
 struct TaskRowView: View {
-    let task: ActiveTask
+    let task: TaskItem
     
     var body: some View {
         VStack(alignment: .leading) {

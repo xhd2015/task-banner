@@ -51,7 +51,7 @@ struct BannerView: View {
     @State private var isCollapsed: Bool = false
     @FocusState private var isEditing: Bool
     
-    var filteredTasks: [ActiveTask] {
+    var filteredTasks: [TaskItem] {
         showOnlyUnfinished ? 
             taskManager.rootTasks.filter { task in
                 filterUnfinishedTasks(task) || recentlyFinishedTasks.contains(task.id)
@@ -135,8 +135,8 @@ struct BannerView: View {
         }
     }
     
-    private func findTask(id: Int64) -> ActiveTask? {
-        func search(in tasks: [ActiveTask]) -> ActiveTask? {
+    private func findTask(id: Int64) -> TaskItem? {
+        func search(in tasks: [TaskItem]) -> TaskItem? {
             for task in tasks {
                 if task.id == id {
                     return task
@@ -151,7 +151,7 @@ struct BannerView: View {
     }
     
     // Recursively filter tasks and their subtasks
-    private func filterUnfinishedTasks(_ task: ActiveTask) -> Bool {
+    private func filterUnfinishedTasks(_ task: TaskItem) -> Bool {
         if task.status == .created || recentlyFinishedTasks.contains(task.id) {
             return true
         }
@@ -163,7 +163,7 @@ struct BannerView: View {
 
 private struct TaskItemWithSubtasks: View {
     @EnvironmentObject var taskManager: TaskManager
-    let task: ActiveTask
+    let task: TaskItem
     @Binding var editingTaskId: Int64?
     @Binding var editingText: String
     @FocusState.Binding var isEditing: Bool
@@ -173,7 +173,7 @@ private struct TaskItemWithSubtasks: View {
     @Binding var selectedTaskId: Int64?
     let onTaskSelect: (Int64) -> Void
     
-    init(task: ActiveTask, editingTaskId: Binding<Int64?>, editingText: Binding<String>, isEditing: FocusState<Bool>.Binding, indentLevel: Int = 0, selectedTaskId: Binding<Int64?>, onTaskSelect: @escaping (Int64) -> Void) {
+    init(task: TaskItem, editingTaskId: Binding<Int64?>, editingText: Binding<String>, isEditing: FocusState<Bool>.Binding, indentLevel: Int = 0, selectedTaskId: Binding<Int64?>, onTaskSelect: @escaping (Int64) -> Void) {
         self.task = task
         self._editingTaskId = editingTaskId
         self._editingText = editingText
@@ -183,7 +183,7 @@ private struct TaskItemWithSubtasks: View {
         self.onTaskSelect = onTaskSelect
     }
     
-    var filteredSubTasks: [ActiveTask] {
+    var filteredSubTasks: [TaskItem] {
         showOnlyUnfinished ? 
             task.subTasks.filter { task in
                 filterUnfinishedTasks(task) || recentlyFinishedTasks.contains(task.id)
@@ -214,7 +214,7 @@ private struct TaskItemWithSubtasks: View {
     }
     
     // Recursively filter tasks and their subtasks
-    private func filterUnfinishedTasks(_ task: ActiveTask) -> Bool {
+    private func filterUnfinishedTasks(_ task: TaskItem) -> Bool {
         if task.status == .created || recentlyFinishedTasks.contains(task.id) {
             return true
         }

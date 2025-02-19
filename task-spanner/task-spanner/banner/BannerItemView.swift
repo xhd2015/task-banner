@@ -2,7 +2,7 @@ import SwiftUI
 
 struct BannerItemView: View {
     @EnvironmentObject var taskManager: TaskManager
-    let task: ActiveTask
+    let task: TaskItem
     
     @Binding var editingTaskId: Int64?
     @Binding var editingText: String
@@ -17,7 +17,7 @@ struct BannerItemView: View {
     
     @Environment(\.showOnlyUnfinished) private var showOnlyUnfinished
     
-    init(task: ActiveTask, 
+    init(task: TaskItem, 
          editingTaskId: Binding<Int64?>, 
          editingText: Binding<String>, 
          isEditing: FocusState<Bool>.Binding, 
@@ -141,7 +141,9 @@ struct BannerItemView: View {
                         
                         IconButton(
                             systemName: "arrow.up",
-                            action: { taskManager.moveTask(task, direction: .up) },
+                            action: { Task {
+                                try? await taskManager.moveTask(task, direction: .up)
+                            }},
                             color: isFirst ? .secondary : .primary,
                             addTrailingPadding: false
                         )
@@ -149,7 +151,9 @@ struct BannerItemView: View {
                         
                         IconButton(
                             systemName: "arrow.down",
-                            action: { taskManager.moveTask(task, direction: .down) },
+                            action: { Task {
+                                try? await taskManager.moveTask(task, direction: .down)
+                            }},
                             color: isLast ? .secondary : .primary,
                             addTrailingPadding: false
                         )
@@ -212,7 +216,8 @@ struct BannerItemView: View {
         if !newSubTaskText.isEmpty {
             Task {
                 do {
-                    try await taskManager.addSubTask(to: task, title: newSubTaskText)
+                    let newTask = TaskItem(title: newSubTaskText, parentId: task.id)
+                    taskManager.addTask(newTask)
                     cancelAddSubTask()
                 } catch {
                     print("Failed to add sub-task: \(error)")
@@ -233,11 +238,15 @@ struct BannerItemView: View {
             recentlyFinishedTasks.insert(task.id)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 recentlyFinishedTasks.remove(task.id)
-                taskManager.updateTaskStatus(task, newStatus: newStatus)
+                Task {
+                    try? await taskManager.updateTaskStatus(task, newStatus: newStatus)
+                }
             }
         }else {
             // directly update status
-            taskManager.updateTaskStatus(task, newStatus: newStatus)
+            Task {
+                try? await taskManager.updateTaskStatus(task, newStatus: newStatus)
+            }
         }
     }
-} 
+}

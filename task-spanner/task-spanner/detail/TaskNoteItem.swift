@@ -2,7 +2,7 @@ import SwiftUI
 
 struct TaskNoteItem: View {
     @EnvironmentObject var taskManager: TaskManager
-    let task: ActiveTask
+    let task: TaskItem
     let index: Int
     let text: String
     @Binding var editingNoteIndex: Int?

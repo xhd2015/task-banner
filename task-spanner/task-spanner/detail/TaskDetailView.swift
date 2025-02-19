@@ -3,7 +3,7 @@ import SwiftUI
 struct TaskDetailView: View {
     @EnvironmentObject var taskManager: TaskManager
     @EnvironmentObject var routeManager: RouteManager
-    let task: ActiveTask
+    let task: TaskItem
     
     private func relativeTimeString(from date: Date) -> String {
         let now = Date()
@@ -83,14 +83,16 @@ struct TaskDetailView: View {
 private struct SubtaskRow: View {
     @EnvironmentObject var taskManager: TaskManager
     @EnvironmentObject var routeManager: RouteManager
-    let subtask: ActiveTask
+    let subtask: TaskItem
     
     var body: some View {
         HStack(spacing: 8) {
             IconButton(
                 systemName: subtask.status == .done ? "checkmark.square.fill" : "square",
                 action: {
-                    taskManager.updateTaskStatus(subtask, newStatus: subtask.status == .done ? .created : .done)
+                     Task {
+                        try? await taskManager.updateTaskStatus(subtask, newStatus: subtask.status == .done ? .created : .done)
+                    }
                 },
                 color: subtask.status == .done ? .green : .primary,
                 addTrailingPadding: false
