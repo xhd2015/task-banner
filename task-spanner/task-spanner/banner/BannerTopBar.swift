@@ -51,13 +51,21 @@ struct BannerTopBar: View {
 
 private struct ModeSwitcher: View {
     @Binding var mode: TaskMode
+    @EnvironmentObject var taskManager: TaskManager
+    
+    private var displayModeText: String {
+        mode.rawValue.uppercased()
+    }
     
     var body: some View {
         Menu {
-            ForEach(TaskMode.allCases) { mode in
-                Button(action: { self.mode = mode }) {
+            ForEach([TaskMode.work,TaskMode.life]) { mode in
+                Button(action: {
+                    self.mode = mode
+                    taskManager.switchMode(mode)
+                }) {
                     HStack {
-                        Text(mode.rawValue)
+                        Text(mode.rawValue.uppercased())
                         if self.mode == mode {
                             Image(systemName: "checkmark")
                         }
@@ -66,7 +74,7 @@ private struct ModeSwitcher: View {
             }
         } label: {
             HStack(spacing: 2) {
-                Text(mode.rawValue)
+                Text(displayModeText)
                     .foregroundColor(.primary)
                     .font(.subheadline)
                 Image(systemName: "chevron.down")

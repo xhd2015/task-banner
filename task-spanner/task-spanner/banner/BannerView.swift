@@ -255,17 +255,3 @@ extension View {
         return self
     }
 }
-
-// Add this enum at the bottom of the file
-enum TaskMode: String, CaseIterable, Identifiable {
-    case work = "WORK"
-    case life = "LIFE"
-    
-    var id: Self { self }
-}
-
-// Add this enum at the bottom of the file, near other enums
-enum RoutePath {
-    case list
-    case detail
-} 

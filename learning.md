@@ -71,6 +71,19 @@ Let me explain @EnvironmentObject in SwiftUI:
 
 ```
 
+## @Published
+Source: https://developer.apple.com/documentation/combine/published
+
+Changing to values will update UI.
+
+## private(set)
+make a property's setter private while keeping its getter public.
+
+When combined with the @Published property wrapper in a class conforming to ObservableObject, it allows the property to be observed for changes externally, while restricting modification to within the class itself.
+
+## var vs let
+In Swift, var and let are used to declare variables and constants, respectively.
+
 # Interesting Cursor
 
 ## Cursor can draw text-based image!

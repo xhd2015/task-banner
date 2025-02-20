@@ -7,6 +7,7 @@ class TaskManager: ObservableObject, @unchecked Sendable {
     static let shared = TaskManager()  // Singleton instance
     
     @Published private(set) var tasks: [TaskItem] = []
+    @Published private(set) var currentMode: TaskMode = .work  // Add current mode
     private var bannerWindow: NSWindow? {
         willSet {
             // Close and release the old window before creating a new one
@@ -36,7 +37,7 @@ class TaskManager: ObservableObject, @unchecked Sendable {
     
     private func loadTasksFromStorage() async {
         do {
-            let loadedTasks = try await storage.loadTasks()
+            let loadedTasks = try await storage.loadTasks(mode: currentMode)
             print("TaskManager loaded tasks: \(loadedTasks.count)")
             self.tasks = loadedTasks
             updateBannerVisibility()
@@ -61,17 +62,31 @@ class TaskManager: ObservableObject, @unchecked Sendable {
         bannerWindow.orderOut(nil)
     }
     
+    // Add function to switch mode
+    func switchMode(_ newMode: TaskMode) {
+        guard newMode != currentMode else { return }
+        currentMode = newMode
+        Task {
+            await loadTasksFromStorage()
+        }
+    }
+    
     func addTask(_ task: TaskItem) {
         Task {
             do {
-                let newTask = try await storage.addTask(task)
+                var newTask = task
+                // Only set the mode if it's not explicitly set to shared
+                if newTask.mode == nil {
+                    newTask.mode = currentMode
+                }
+                let savedTask = try await storage.addTask(newTask)
                 DispatchQueue.main.async {
-                    if let parentId = newTask.parentId {
+                    if let parentId = savedTask.parentId {
                         // Use recursive approach to add task to its parent
                         func addToParent(in tasks: inout [TaskItem]) -> Bool {
                             for i in tasks.indices {
                                 if tasks[i].id == parentId {
-                                    tasks[i].subTasks.append(newTask)
+                                    tasks[i].subTasks.append(savedTask)
                                     return true
                                 }
                                 if addToParent(in: &tasks[i].subTasks) {
@@ -83,7 +98,7 @@ class TaskManager: ObservableObject, @unchecked Sendable {
                         _ = addToParent(in: &self.tasks)
                     } else {
                         // No parent ID, add to root tasks
-                        self.tasks.append(newTask)
+                        self.tasks.append(savedTask)
                     }
                     self.updateBannerVisibility()
                 }

@@ -3,39 +3,98 @@ import Foundation
 fileprivate let STORAGE_KEY = "savedTasks"
 //fileprivate let STORAGE_KEY = "savedTasks-test"
 
-// Local storage implementation
-class LocalTaskStorage: TaskStorage {   
-    func saveTasks(_ tasks: [TaskItem]) async throws {
-        do {
-            let encoded = try JSONEncoder().encode(tasks)
-            UserDefaults.standard.set(encoded, forKey: STORAGE_KEY)
-            print("Successfully saved tasks: \(tasks.count) root tasks")
-        } catch {
-            print("Error saving tasks: \(error)")
-            throw error
+protocol DataPersistent<T> {
+    associatedtype T
+    func load() async throws -> T
+    func save(_ data: T) async throws
+}
+
+class FilePersistent<T: Codable>: DataPersistent {
+    private let fileManager = FileManager.default
+    private let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+    private let tasksFileName = "tasks.json"
+    
+    private var tasksFileURL: URL {
+        return documentsPath.appendingPathComponent(tasksFileName)
+    }
+
+    func load() async throws -> T {
+        guard fileManager.fileExists(atPath: tasksFileURL.path) else {
+            throw NSError(domain: "FileStorage", code: 404, userInfo: [NSLocalizedDescriptionKey: "File not found"])
         }
+        let data = try Data(contentsOf: tasksFileURL)
+        return try JSONDecoder().decode(T.self, from: data)
     }
     
-    func loadTasks() async throws -> [TaskItem] {
-        guard let savedTasks = UserDefaults.standard.data(forKey: STORAGE_KEY) else {
-            print("No saved tasks found in UserDefaults")
-            return []
+    func save(_ data: T) async throws {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted
+        let data = try encoder.encode(data)
+        try data.write(to: tasksFileURL)
+    }
+}
+
+class UserDefaultsPersistent<T: Codable>: DataPersistent {
+    private let userDefaults = UserDefaults.standard
+    private let key: String
+
+    init(_ key: String) {
+        self.key = key
+    }
+
+    func load() async throws -> T {
+        guard let data = userDefaults.data(forKey: key) else {
+            throw NSError(domain: "UserDefaults", code: 404, userInfo: [NSLocalizedDescriptionKey: "Data not found"])
+        }
+        return try JSONDecoder().decode(T.self, from: data)
+    }
+
+    func save(_ data: T) async throws {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted
+        let data = try encoder.encode(data)
+        userDefaults.set(data, forKey: key)
+    }
+}
+
+// Local storage implementation
+class LocalTaskStorage: TaskStorage {   
+    private let storage: any DataPersistent<[TaskItem]>
+    
+    init(storage: (any DataPersistent<[TaskItem]>)? = nil) {
+        self.storage = storage ?? UserDefaultsPersistent<[TaskItem]>(STORAGE_KEY)
+    }
+    
+    private func loadAllTasks() async throws -> [TaskItem] {
+        return try await storage.load()
+    }
+    
+    func loadTasks(mode: TaskMode?) async throws -> [TaskItem] {
+        let allTasks = try await loadAllTasks()
+        guard let mode = mode, mode != .shared else {
+            return allTasks
         }
         
-        do {
-            let decodedTasks = try JSONDecoder().decode([TaskItem].self, from: savedTasks)
-            print("Successfully loaded tasks: \(decodedTasks.count) root tasks")
-            print("Tasks details: \(decodedTasks.map { "id: \($0.id), title: \($0.title), subTasks: \($0.subTasks.count)" })")
-            return decodedTasks
-        } catch {
-            print("Error decoding tasks: \(error)")
-            print("Raw data: \(String(data: savedTasks, encoding: .utf8) ?? "unable to convert to string")")
-            return []
+        // Filter tasks by mode recursively, including shared tasks (where mode is nil or empty)
+        func filterByMode(_ tasks: [TaskItem]) -> [TaskItem] {
+            return tasks.filter { task in
+                task.mode == mode || task.mode == nil || task.mode == .shared  // Include both mode-specific and shared tasks
+            }.map { task in
+                var filteredTask = task
+                filteredTask.subTasks = filterByMode(task.subTasks)
+                return filteredTask
+            }
         }
+        
+        return filterByMode(allTasks)
+    }
+    
+    func saveTasks(_ tasks: [TaskItem]) async throws {
+        try await storage.save(tasks)
     }
     
     private func findHighestTaskId() async throws -> Int64 {
-        let tasks = try await loadTasks()
+        let tasks = try await loadTasks(mode: nil)
         var maxId: Int64 = 0
         
         func checkTask(_ task: TaskItem) {
@@ -53,9 +112,9 @@ class LocalTaskStorage: TaskStorage {
     }
     
     func addTask(_ task: TaskItem) async throws -> TaskItem {
-        var currentTasks = try await loadTasks()
+        var currentTasks = try await loadTasks(mode: nil)
         let highestId = try await findHighestTaskId()
-        let newTask = TaskItem(title: task.title, startTime: task.startTime, parentId: task.parentId, id: highestId + 1)
+        let newTask = TaskItem(title: task.title, startTime: task.startTime, parentId: task.parentId, id: highestId + 1, mode: task.mode)
         
         if let parentId = task.parentId {
             // Find the parent task recursively and add the task as a subtask
@@ -84,7 +143,7 @@ class LocalTaskStorage: TaskStorage {
     }
     
     func updateTask(taskId: Int64, update: TaskUpdate) async throws {
-        var currentTasks = try await loadTasks()
+        var currentTasks = try await loadTasks(mode: nil)
         
         func updateTaskRecursively(in tasks: inout [TaskItem]) -> Bool {
             for index in tasks.indices {
@@ -97,6 +156,9 @@ class LocalTaskStorage: TaskStorage {
                     }
                     if let newNotes = update.notes {
                         tasks[index].notes = newNotes
+                    }
+                    if let newMode = update.mode {
+                        tasks[index].mode = newMode
                     }
                     return true
                 }
@@ -115,7 +177,7 @@ class LocalTaskStorage: TaskStorage {
     }
     
     func removeTask(taskId: Int64) async throws {
-        var currentTasks = try await loadTasks()
+        var currentTasks = try await loadTasks(mode: nil)
         
         func removeTaskRecursively(from tasks: inout [TaskItem]) -> Bool {
             // First check at current level
@@ -140,7 +202,7 @@ class LocalTaskStorage: TaskStorage {
         }
     }
         func exchangeOrder(aID: Int64, bID: Int64) async throws {
-        var currentTasks = try await loadTasks()
+        var currentTasks = try await loadTasks(mode: nil)
         
         func exchangeTasksRecursively(in tasks: inout [TaskItem]) -> Bool {
             // First check at current level
@@ -167,7 +229,7 @@ class LocalTaskStorage: TaskStorage {
     }
     
     func addTaskNote(taskId: Int64, note: String) async throws {
-        var currentTasks = try await loadTasks()
+        var currentTasks = try await loadTasks(mode: nil)
         
         func addNoteRecursively(in tasks: inout [TaskItem]) -> Bool {
             // First check at current level
@@ -193,7 +255,7 @@ class LocalTaskStorage: TaskStorage {
     }
     
     func updateTaskNote(taskId: Int64, noteIndex: Int, newText: String) async throws {
-        var currentTasks = try await loadTasks()
+        var currentTasks = try await loadTasks(mode: nil)
         
         func updateNoteRecursively(in tasks: inout [TaskItem]) -> Bool {
             // First check at current level

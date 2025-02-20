@@ -1,3 +1,5 @@
+import Foundation
+
 // Define protocol for data storage
 
 // Structure to describe task updates
@@ -5,12 +7,23 @@ struct TaskUpdate: Codable {
     var title: String?
     var status: TaskStatus?
     var notes: [String]?
-    // Add more fields as needed
+    var mode: TaskMode?  // Add mode to task updates
+    
+    enum CodingKeys: String, CodingKey {
+        case title, status, notes, mode
+    }
+    
+    init(title: String? = nil, status: TaskStatus? = nil, notes: [String]? = nil, mode: TaskMode? = nil) {
+        self.title = title
+        self.status = status
+        self.notes = notes
+        self.mode = mode
+    }
 }
 
 protocol TaskStorage {
     func saveTasks(_ tasks: [TaskItem]) async throws
-    func loadTasks() async throws -> [TaskItem]
+    func loadTasks(mode: TaskMode?) async throws -> [TaskItem]  // Add mode parameter
     func addTask(_ task: TaskItem) async throws -> TaskItem
     func removeTask(taskId: Int64) async throws
     func updateTask(taskId: Int64, update: TaskUpdate) async throws

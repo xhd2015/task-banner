@@ -2,6 +2,10 @@ import Foundation
 
 // Remote storage implementation
 class RemoteTaskStorage: TaskStorage {
+    func loadTasks(mode: TaskMode?) async throws -> [TaskItem] {
+        return []
+    }
+    
     func removeTask(taskId: Int64) async throws {
         
     }
