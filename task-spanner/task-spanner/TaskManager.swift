@@ -39,11 +39,11 @@ class TaskManager: ObservableObject, @unchecked Sendable {
         self.fileStorage = LocalTaskStorage(storage: FilePersistent())
         self.remoteStorage = RemoteTaskStorage()
         
+        setupBannerWindow() // Setup window first
+        
         Task {
             await loadTasksFromStorage()
         }
-        setupBannerWindow()
-        updateBannerVisibility() // Show banner if there are loaded tasks
     }
     
     private func saveTasksToStorage() async throws {
@@ -95,8 +95,9 @@ class TaskManager: ObservableObject, @unchecked Sendable {
                     newTask.mode = currentMode
                 }
                 let savedTask = try await storage.addTask(newTask)
+                print("TaskManager added task: \(savedTask)")
                 DispatchQueue.main.async {
-                    if let parentId = savedTask.parentId {
+                    if let parentId = savedTask.parentID {
                         // Use recursive approach to add task to its parent
                         func addToParent(in tasks: inout [TaskItem]) -> Bool {
                             for i in tasks.indices {
@@ -153,7 +154,9 @@ class TaskManager: ObservableObject, @unchecked Sendable {
     }
     
     private func updateBannerVisibility() {
-        if self.tasks.isEmpty {
+        print("updateBannerVisibility called: tasks.count=\(tasks.count), rootTasks.count=\(rootTasks.count)")
+        if self.tasks.isEmpty && false {
+            // NOTE: always show banner
             self.bannerWindow?.orderOut(nil)
         } else {
             self.bannerWindow?.orderFront(nil)
@@ -281,7 +284,11 @@ class TaskManager: ObservableObject, @unchecked Sendable {
     
     // Update the main tasks array to only show root tasks
     var rootTasks: [TaskItem] {
-        tasks.filter { $0.parentId == nil }
+        let roots = tasks.filter { task in
+            task.parentID == nil || task.parentID == 0
+        }
+        print("rootTasks: tasks.count=\(tasks.count), root task count=\(roots.count)")
+        return roots
     }
     
     func exportTasksToJSON() async throws -> Data {

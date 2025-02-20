@@ -131,13 +131,13 @@ struct BannerItemView: View {
             if isHovered {
                 HStack(spacing: 2) {
                     Group {
-                        let isFirst = task.parentId == nil ? 
+                        let isFirst = task.parentID == nil ? 
                             taskManager.tasks.first?.id == task.id :
-                            taskManager.tasks.first(where: { $0.id == task.parentId })?.subTasks.first?.id == task.id
+                            taskManager.tasks.first(where: { $0.id == task.parentID })?.subTasks.first?.id == task.id
                             
-                        let isLast = task.parentId == nil ?
+                        let isLast = task.parentID == nil ?
                             taskManager.tasks.last?.id == task.id :
-                            taskManager.tasks.first(where: { $0.id == task.parentId })?.subTasks.last?.id == task.id
+                            taskManager.tasks.first(where: { $0.id == task.parentID })?.subTasks.last?.id == task.id
                         
                         IconButton(
                             systemName: "arrow.up",

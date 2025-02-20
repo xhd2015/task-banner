@@ -116,9 +116,9 @@ class LocalTaskStorage: TaskStorage {
         print("addTask: \(task)")
         var currentTasks = try await loadTasks(mode: nil)
         let highestId = try await findHighestTaskId()
-        let newTask = TaskItem(title: task.title, startTime: task.startTime, parentId: task.parentId, id: highestId + 1, mode: task.mode)
+        let newTask = TaskItem(title: task.title, startTime: task.startTime, parentId: task.parentID, id: highestId + 1, mode: task.mode)
         
-        if let parentId = task.parentId {
+        if let parentId = task.parentID {
             // Find the parent task recursively and add the task as a subtask
             func addSubTaskRecursively(to tasks: inout [TaskItem], parentId: Int64) -> Bool {
                 for index in tasks.indices {
