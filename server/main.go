@@ -263,4 +263,9 @@ func setupTaskAPIs() {
 	http.HandleFunc("/api/listTasks", handle.Wrap(task.ListTasks))
 	http.HandleFunc("/api/addTask", handle.Wrap(task.AddTask))
 	http.HandleFunc("/api/updateTask", handle.Wrap(task.UpdateTask))
+	http.HandleFunc("/api/removeTask", handle.Wrap(task.RemoveTask))
+	http.HandleFunc("/api/exchangeOrder", handle.Wrap(task.ExchangeOrder))
+	http.HandleFunc("/api/addTaskNote", handle.Wrap(task.AddTaskNote))
+	http.HandleFunc("/api/updateTaskNote", handle.Wrap(task.UpdateTaskNote))
+	http.HandleFunc("/api/saveTasks", handle.Wrap(task.SaveTasks))
 }

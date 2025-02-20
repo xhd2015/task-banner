@@ -3,6 +3,7 @@ import Foundation
 enum StorageType: String {
     case userDefaults = "userDefaults"
     case file = "file"
+    case remote = "remote(http://localhost:7021)"
     
     static var current: StorageType {
         get {
@@ -80,26 +81,10 @@ class LocalTaskStorage: TaskStorage {
     private let defaultsStorage: any DataPersistent<[TaskItem]> = UserDefaultsPersistent<[TaskItem]>(STORAGE_KEY)
     private let fileStorage: any DataPersistent<[TaskItem]> = FilePersistent<[TaskItem]>()
 
-    // TODO: remove this once remote storage is fully implemented
-    private let remoteStorage: RemoteTaskStorage = RemoteTaskStorage()
+    private var storage: any DataPersistent<[TaskItem]>
 
-    private var debugRemoteLoad: Bool = false
-    
-    init(debugRemoteLoad: Bool = false) {
-        self.debugRemoteLoad = debugRemoteLoad
-    }
-
-    func updateDebugRemoteLoad(_ debugRemoteLoad: Bool) {
-        self.debugRemoteLoad = debugRemoteLoad
-    }
-
-    private var storage: any DataPersistent<[TaskItem]> {
-        switch StorageType.current {
-        case .userDefaults:
-            return defaultsStorage
-        case .file:
-            return fileStorage
-        }
+    init(storage:any DataPersistent<[TaskItem]>){
+        self.storage = storage
     }
     
     private func loadAllTasks() async throws -> [TaskItem] {
@@ -108,10 +93,6 @@ class LocalTaskStorage: TaskStorage {
     
     func loadTasks(mode: TaskMode?) async throws -> [TaskItem] {
         print("loadTasks: \(mode)")
-        if(debugRemoteLoad){
-            print("loadTasks: remote")
-            return try await remoteStorage.loadTasks(mode: mode)
-        }
         let allTasks = try await loadAllTasks()
         guard let mode = mode, mode != .shared else {
             return allTasks
@@ -133,10 +114,6 @@ class LocalTaskStorage: TaskStorage {
 
     func addTask(_ task: TaskItem) async throws -> TaskItem {
         print("addTask: \(task)")
-        if(debugRemoteLoad){
-            print("addTask: remote")
-            return try await remoteStorage.addTask(task)
-        }
         var currentTasks = try await loadTasks(mode: nil)
         let highestId = try await findHighestTaskId()
         let newTask = TaskItem(title: task.title, startTime: task.startTime, parentId: task.parentId, id: highestId + 1, mode: task.mode)
@@ -191,10 +168,6 @@ class LocalTaskStorage: TaskStorage {
     
     func updateTask(taskId: Int64, update: TaskUpdate) async throws {
         print("updateTask: \(taskId) \(update)")
-        if(debugRemoteLoad){
-            print("updateTask: remote")
-            return try await remoteStorage.updateTask(taskId: taskId, update: update)
-        }
         var currentTasks = try await loadTasks(mode: nil)
         
         func updateTaskRecursively(in tasks: inout [TaskItem]) -> Bool {

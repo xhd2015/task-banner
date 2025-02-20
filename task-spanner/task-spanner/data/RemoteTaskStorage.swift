@@ -92,45 +92,46 @@ class RemoteTaskStorage: TaskStorage {
     }
 
     func removeTask(taskId: Int64) async throws {
-        
+        struct RemoveTaskRequest: Encodable {
+            let taskID: Int64
+        }
+        let request = RemoveTaskRequest(taskID: taskId)
+        let _: EmptyResponse = try await makeHttpPost(api: "/api/removeTask", body: request)
     }
     
     func exchangeOrder(aID: Int64, bID: Int64) async throws {
-        
+        struct ExchangeOrderRequest: Encodable {
+            let taskID: Int64
+            let exchangeTaskID: Int64
+        }
+        let request = ExchangeOrderRequest(taskID: aID, exchangeTaskID: bID)
+        let _: EmptyResponse = try await makeHttpPost(api: "/api/exchangeOrder", body: request)
     }
     
     func addTaskNote(taskId: Int64, note: String) async throws {
-        
+        struct AddTaskNoteRequest: Encodable {
+            let taskID: Int64
+            let note: String
+        }
+        let request = AddTaskNoteRequest(taskID: taskId, note: note)
+        let _: EmptyResponse = try await makeHttpPost(api: "/api/addTaskNote", body: request)
     }
     
     func updateTaskNote(taskId: Int64, noteIndex: Int, newText: String) async throws {
-        
+        struct UpdateTaskNoteRequest: Encodable {
+            let taskID: Int64
+            let noteIndex: Int
+            let newText: String
+        }
+        let request = UpdateTaskNoteRequest(taskID: taskId, noteIndex: noteIndex, newText: newText)
+        let _: EmptyResponse = try await makeHttpPost(api: "/api/updateTaskNote", body: request)
     }
     
     func saveTasks(_ tasks: [TaskItem]) async throws {
-        let url = baseURL.appendingPathComponent("tasks")
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let encoded = try JSONEncoder().encode(tasks)
-        let (_, response) = try await URLSession.shared.upload(for: request, from: encoded)
-        
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            throw URLError(.badServerResponse)
+        struct SaveTasksRequest: Encodable {
+            let tasks: [TaskItem]
         }
-    }
-    
-    func loadTasks() async throws -> [TaskItem] {
-        let url = baseURL.appendingPathComponent("tasks")
-        let (data, response) = try await URLSession.shared.data(from: url)
-        
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            throw URLError(.badServerResponse)
-        }
-        
-        return try JSONDecoder().decode([TaskItem].self, from: data)
+        let request = SaveTasksRequest(tasks: tasks)
+        let _: EmptyResponse = try await makeHttpPost(api: "/api/saveTasks", body: request)
     }
 }

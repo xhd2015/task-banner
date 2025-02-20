@@ -240,7 +240,7 @@ func (s *LocalStorage) UpdateTask(taskID int64, update *model.TaskUpdate) error 
 }
 
 // ExchangeOrder swaps the order of two tasks at the same level
-func (s *LocalStorage) ExchangeOrder(aID int64, bID int64) error {
+func (s *LocalStorage) ExchangeOrder(taskID int64, exchangeTaskID int64) error {
 	tasks, err := s.readTasks()
 	if err != nil {
 		return err
@@ -252,10 +252,10 @@ func (s *LocalStorage) ExchangeOrder(aID int64, bID int64) error {
 		// Find both tasks at current level
 		var aIndex, bIndex = -1, -1
 		for i, task := range tasks {
-			if task.ID == aID {
+			if task.ID == taskID {
 				aIndex = i
 			}
-			if task.ID == bID {
+			if task.ID == exchangeTaskID {
 				bIndex = i
 			}
 		}

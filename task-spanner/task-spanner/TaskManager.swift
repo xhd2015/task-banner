@@ -8,14 +8,7 @@ class TaskManager: ObservableObject, @unchecked Sendable {
     
     @Published private(set) var tasks: [TaskItem] = []
     @Published private(set) var currentMode: TaskMode = .work  // Add current mode
-    @Published var useRemote: Bool {
-        didSet {
-            UserDefaults.standard.set(useRemote, forKey: USE_REMOTE_KEY)
-            Task {
-                await switchStorage()
-            }
-        }
-    }
+
     private var bannerWindow: NSWindow? {
         willSet {
             // Close and release the old window before creating a new one
@@ -23,30 +16,34 @@ class TaskManager: ObservableObject, @unchecked Sendable {
         }
     }
     
-    // Storage property that can be switched between local and remote
-    private var storage: TaskStorage
     private let localStorage: LocalTaskStorage
-    private let remoteStorage = RemoteTaskStorage()
+    private let fileStorage: LocalTaskStorage
+    private let remoteStorage: RemoteTaskStorage
+
+    // Storage property that can be switched between local and remote
+    private var storage: TaskStorage {
+        switch StorageType.current {
+        case .userDefaults:
+            return localStorage
+        case .file:
+            return fileStorage
+        case .remote:
+            return remoteStorage
+        }
+    }
     
     // Make init private to enforce singleton pattern
     private init() {
-        let useRemote = UserDefaults.standard.bool(forKey: USE_REMOTE_KEY)
-        self.useRemote = useRemote
         // Initialize with appropriate storage based on useRemote
-        self.localStorage = LocalTaskStorage(debugRemoteLoad: useRemote)
-        self.storage = localStorage
+        self.localStorage = LocalTaskStorage(storage: UserDefaultsPersistent(STORAGE_KEY))
+        self.fileStorage = LocalTaskStorage(storage: FilePersistent())
+        self.remoteStorage = RemoteTaskStorage()
         
         Task {
             await loadTasksFromStorage()
         }
         setupBannerWindow()
         updateBannerVisibility() // Show banner if there are loaded tasks
-    }
-    
-    private func switchStorage() async {
-        print("Switching useRemote to \(useRemote)")
-        self.localStorage.updateDebugRemoteLoad(useRemote)
-        await loadTasksFromStorage()
     }
     
     private func saveTasksToStorage() async throws {
