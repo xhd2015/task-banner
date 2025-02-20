@@ -1,8 +1,5 @@
 import Foundation
 
-fileprivate let STORAGE_KEY = "savedTasks"
-//fileprivate let STORAGE_KEY = "savedTasks-test"
-
 protocol DataPersistent<T> {
     associatedtype T
     func load() async throws -> T
@@ -60,6 +57,8 @@ class UserDefaultsPersistent<T: Codable>: DataPersistent {
 // Local storage implementation
 class LocalTaskStorage: TaskStorage {   
     private let storage: any DataPersistent<[TaskItem]>
+    // TODO: remove this once remote storage is fully implemented
+    private let remoteStorage: RemoteTaskStorage = RemoteTaskStorage()
     
     init(storage: (any DataPersistent<[TaskItem]>)? = nil) {
         self.storage = storage ?? UserDefaultsPersistent<[TaskItem]>(STORAGE_KEY)
@@ -70,6 +69,11 @@ class LocalTaskStorage: TaskStorage {
     }
     
     func loadTasks(mode: TaskMode?) async throws -> [TaskItem] {
+        print("loadTasks: \(mode)")
+        if(debugRemoteLoad){
+            print("loadTasks: remote")
+            return try await remoteStorage.loadTasks(mode: mode)
+        }
         let allTasks = try await loadAllTasks()
         guard let mode = mode, mode != .shared else {
             return allTasks

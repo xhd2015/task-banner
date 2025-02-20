@@ -11,6 +11,8 @@ import (
 	"github.com/xhd2015/task-banner/server/dao"
 	jsonrepo "github.com/xhd2015/task-banner/server/dao/json"
 	"github.com/xhd2015/task-banner/server/dao/sqlite"
+	"github.com/xhd2015/task-banner/server/handle"
+	"github.com/xhd2015/task-banner/server/handle/task"
 	"github.com/xhd2015/task-banner/server/route"
 )
 
@@ -194,6 +196,7 @@ func main() {
 			next(w, r)
 		}
 	}
+	setupTaskAPIs()
 
 	http.HandleFunc("/tasks", corsMiddleware(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
@@ -252,6 +255,10 @@ func main() {
 		return content, nil
 	}).ServeHTTP)
 
-	fmt.Println("Server starting on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	fmt.Println("Server starting on http://localhost:7021")
+	log.Fatal(http.ListenAndServe(":7021", nil))
+}
+
+func setupTaskAPIs() {
+	http.HandleFunc("/api/listTasks", handle.Wrap(task.ListTasks))
 }
