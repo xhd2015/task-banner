@@ -5,8 +5,22 @@ struct RemoteResponse<T: Decodable>:Decodable{
     let msg: String?
     let data: T
 }
+struct EmptyResponse: Codable {}
+
+struct TaskUpdateRequest: Encodable {
+    let taskID: Int64
+    let update: TaskUpdate
+}
 
 func makeHttpGet<T: Decodable>(api:String, params: [URLQueryItem]?)  async throws -> T {
+    return try await makeHttpRequest(api: api, method: "GET", params: params, body: nil)
+}
+
+func makeHttpPost<T: Decodable>(api:String, body: any Encodable)  async throws -> T {
+    return try await makeHttpRequest(api: api, method: "POST", params: nil, body: body)
+}
+
+func makeHttpRequest<T: Decodable>(api:String,method:String, params: [URLQueryItem]?,body: (any Encodable)?)  async throws -> T {
     var components = URLComponents()
     components.scheme = "http"
     components.host = "localhost"
@@ -20,7 +34,10 @@ func makeHttpGet<T: Decodable>(api:String, params: [URLQueryItem]?)  async throw
     }
     print("Making request to: \(url.absoluteString)")
     var request = URLRequest(url: url)
-    request.httpMethod = "GET"
+    request.httpMethod = method
+    if let body = body {
+        request.httpBody = try JSONEncoder().encode(body)
+    }
     let (data, response) = try await URLSession.shared.data(for: request)
     guard let httpResponse = response as? HTTPURLResponse else {
         print("Response is not HTTP response")
@@ -65,6 +82,15 @@ class RemoteTaskStorage: TaskStorage {
         return try await makeHttpGet(api: "/api/listTasks", params: mode != nil ? [URLQueryItem(name: "mode", value: mode?.rawValue)] : nil) as [TaskItem]
     }
 
+    func addTask(_ task: TaskItem) async throws -> TaskItem {
+        return try await makeHttpPost(api: "/api/addTask", body: task) as TaskItem
+    }
+
+    func updateTask(taskId: Int64, update: TaskUpdate) async throws {
+        let request = TaskUpdateRequest(taskID: taskId, update: update)
+        let _: EmptyResponse = try await makeHttpPost(api: "/api/updateTask", body: request)
+    }
+
     func removeTask(taskId: Int64) async throws {
         
     }
@@ -106,41 +132,5 @@ class RemoteTaskStorage: TaskStorage {
         }
         
         return try JSONDecoder().decode([TaskItem].self, from: data)
-    }
-    
-    func addTask(_ task: TaskItem) async throws -> TaskItem {
-        let endpoint = task.parentId != nil ? 
-            "tasks/\(task.parentId!)/subtasks" : 
-            "task"
-            
-        let url = baseURL.appendingPathComponent(endpoint)
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let encoded = try JSONEncoder().encode(task)
-        let (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
-        
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            throw URLError(.badServerResponse)
-        }
-        
-        return try JSONDecoder().decode(TaskItem.self, from: data)
-    }
-    
-    func updateTask(taskId: Int64, update: TaskUpdate) async throws {
-        let url = baseURL.appendingPathComponent("tasks/\(taskId)")
-        var request = URLRequest(url: url)
-        request.httpMethod = "PATCH"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let encoded = try JSONEncoder().encode(update)
-        let (_, response) = try await URLSession.shared.upload(for: request, from: encoded)
-        
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            throw URLError(.badServerResponse)
-        }
     }
 }

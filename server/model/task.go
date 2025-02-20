@@ -44,3 +44,11 @@ func ConvertSwiftTimestamp(swiftTimestamp SwiftTimestamp) time.Time {
 	goTime := swiftReferenceDate.Add(time.Duration(float64(swiftTimestamp) * float64(time.Second)))
 	return goTime
 }
+
+func (c *TaskItem) ShallowClone() *TaskItem {
+	if c == nil {
+		return nil
+	}
+	cl := *c
+	return &cl
+}

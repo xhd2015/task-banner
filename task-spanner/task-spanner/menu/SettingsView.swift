@@ -28,7 +28,9 @@ struct SettingsView: View {
                     }
                 }
                 
-                Text("Choose where to store your tasks. UserDefaults is suitable for small data, while File storage is better for larger datasets.")
+                Toggle("Use Remote Storage", isOn: $taskManager.useRemote)
+                
+                Text("Choose where to store your tasks. UserDefaults is suitable for small data, while File storage is better for larger datasets. Remote storage enables syncing across devices.")
                     .foregroundStyle(.secondary)
                     .font(.caption)
             } header: {

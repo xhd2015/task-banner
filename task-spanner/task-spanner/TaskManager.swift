@@ -8,6 +8,14 @@ class TaskManager: ObservableObject, @unchecked Sendable {
     
     @Published private(set) var tasks: [TaskItem] = []
     @Published private(set) var currentMode: TaskMode = .work  // Add current mode
+    @Published var useRemote: Bool {
+        didSet {
+            UserDefaults.standard.set(useRemote, forKey: USE_REMOTE_KEY)
+            Task {
+                await switchStorage()
+            }
+        }
+    }
     private var bannerWindow: NSWindow? {
         willSet {
             // Close and release the old window before creating a new one
@@ -17,18 +25,28 @@ class TaskManager: ObservableObject, @unchecked Sendable {
     
     // Storage property that can be switched between local and remote
     private var storage: TaskStorage
+    private let localStorage: LocalTaskStorage
+    private let remoteStorage = RemoteTaskStorage()
     
     // Make init private to enforce singleton pattern
     private init() {
-        // Initialize with local storage by default
-        // Can be changed to remote storage: RemoteTaskStorage(baseURL: "https://api.example.com")
-        self.storage = LocalTaskStorage()
+        let useRemote = UserDefaults.standard.bool(forKey: USE_REMOTE_KEY)
+        self.useRemote = useRemote
+        // Initialize with appropriate storage based on useRemote
+        self.localStorage = LocalTaskStorage(debugRemoteLoad: useRemote)
+        self.storage = localStorage
         
         Task {
             await loadTasksFromStorage()
         }
         setupBannerWindow()
         updateBannerVisibility() // Show banner if there are loaded tasks
+    }
+    
+    private func switchStorage() async {
+        print("Switching useRemote to \(useRemote)")
+        self.localStorage.updateDebugRemoteLoad(useRemote)
+        await loadTasksFromStorage()
     }
     
     private func saveTasksToStorage() async throws {

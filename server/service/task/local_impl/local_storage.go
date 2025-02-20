@@ -123,16 +123,18 @@ func (s *LocalStorage) findHighestTaskID() (int64, error) {
 }
 
 // AddTask adds a new task to storage
-func (s *LocalStorage) AddTask(task *model.TaskItem) error {
+func (s *LocalStorage) AddTask(inputTask *model.TaskItem) (*model.TaskItem, error) {
 	tasks, err := s.readTasks()
 	if err != nil {
-		return err
+		return nil, err
 	}
+
+	task := inputTask.ShallowClone()
 
 	// Generate new ID
 	highestID, err := s.findHighestTaskID()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	task.ID = highestID + 1
 
@@ -153,13 +155,18 @@ func (s *LocalStorage) AddTask(task *model.TaskItem) error {
 		}
 		tasks = addSubTask(tasks)
 		if !found {
-			return errors.New("parent task not found")
+			return nil, errors.New("parent task not found")
 		}
 	} else {
 		tasks = append(tasks, task)
 	}
 
-	return s.writeTasks(tasks)
+	err = s.writeTasks(tasks)
+	if err != nil {
+		return nil, err
+	}
+
+	return task, nil
 }
 
 // RemoveTask removes a task from storage

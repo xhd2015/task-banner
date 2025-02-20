@@ -261,4 +261,6 @@ func main() {
 
 func setupTaskAPIs() {
 	http.HandleFunc("/api/listTasks", handle.Wrap(task.ListTasks))
+	http.HandleFunc("/api/addTask", handle.Wrap(task.AddTask))
+	http.HandleFunc("/api/updateTask", handle.Wrap(task.UpdateTask))
 }

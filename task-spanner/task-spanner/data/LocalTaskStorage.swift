@@ -82,8 +82,15 @@ class LocalTaskStorage: TaskStorage {
 
     // TODO: remove this once remote storage is fully implemented
     private let remoteStorage: RemoteTaskStorage = RemoteTaskStorage()
+
+    private var debugRemoteLoad: Bool = false
     
-    init() {
+    init(debugRemoteLoad: Bool = false) {
+        self.debugRemoteLoad = debugRemoteLoad
+    }
+
+    func updateDebugRemoteLoad(_ debugRemoteLoad: Bool) {
+        self.debugRemoteLoad = debugRemoteLoad
     }
 
     private var storage: any DataPersistent<[TaskItem]> {
@@ -123,30 +130,13 @@ class LocalTaskStorage: TaskStorage {
         
         return filterByMode(allTasks)
     }
-    
-    func saveTasks(_ tasks: [TaskItem]) async throws {
-        try await storage.save(tasks)
-    }
-    
-    private func findHighestTaskId() async throws -> Int64 {
-        let tasks = try await loadTasks(mode: nil)
-        var maxId: Int64 = 0
-        
-        func checkTask(_ task: TaskItem) {
-            maxId = max(maxId, task.id)
-            for subtask in task.subTasks {
-                checkTask(subtask)
-            }
-        }
-        
-        for task in tasks {
-            checkTask(task)
-        }
-        
-        return maxId
-    }
-    
+
     func addTask(_ task: TaskItem) async throws -> TaskItem {
+        print("addTask: \(task)")
+        if(debugRemoteLoad){
+            print("addTask: remote")
+            return try await remoteStorage.addTask(task)
+        }
         var currentTasks = try await loadTasks(mode: nil)
         let highestId = try await findHighestTaskId()
         let newTask = TaskItem(title: task.title, startTime: task.startTime, parentId: task.parentId, id: highestId + 1, mode: task.mode)
@@ -177,7 +167,34 @@ class LocalTaskStorage: TaskStorage {
         return newTask
     }
     
+    func saveTasks(_ tasks: [TaskItem]) async throws {
+        try await storage.save(tasks)
+    }
+    
+    private func findHighestTaskId() async throws -> Int64 {
+        let tasks = try await loadTasks(mode: nil)
+        var maxId: Int64 = 0
+        
+        func checkTask(_ task: TaskItem) {
+            maxId = max(maxId, task.id)
+            for subtask in task.subTasks {
+                checkTask(subtask)
+            }
+        }
+        
+        for task in tasks {
+            checkTask(task)
+        }
+        
+        return maxId
+    }
+    
     func updateTask(taskId: Int64, update: TaskUpdate) async throws {
+        print("updateTask: \(taskId) \(update)")
+        if(debugRemoteLoad){
+            print("updateTask: remote")
+            return try await remoteStorage.updateTask(taskId: taskId, update: update)
+        }
         var currentTasks = try await loadTasks(mode: nil)
         
         func updateTaskRecursively(in tasks: inout [TaskItem]) -> Bool {
