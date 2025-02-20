@@ -35,7 +35,7 @@ class TaskManager: ObservableObject, @unchecked Sendable {
         try await storage.saveTasks(tasks)
     }
     
-    private func loadTasksFromStorage() async {
+    func loadTasksFromStorage() async {
         do {
             let loadedTasks = try await storage.loadTasks(mode: currentMode)
             print("TaskManager loaded tasks: \(loadedTasks.count)")

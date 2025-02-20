@@ -1,5 +1,23 @@
 import Foundation
 
+enum StorageType: String {
+    case userDefaults = "userDefaults"
+    case file = "file"
+    
+    static var current: StorageType {
+        get {
+            let defaults = UserDefaults.standard
+            if let storedValue = defaults.string(forKey: STORAGE_TYPE_KEY) {
+                return StorageType(rawValue: storedValue) ?? .userDefaults
+            }
+            return .userDefaults
+        }
+        set {
+            UserDefaults.standard.set(newValue.rawValue, forKey: STORAGE_TYPE_KEY)
+        }
+    }
+}
+
 protocol DataPersistent<T> {
     associatedtype T
     func load() async throws -> T
@@ -16,7 +34,10 @@ class FilePersistent<T: Codable>: DataPersistent {
     }
 
     func load() async throws -> T {
+        print("[Debug] Attempting to load file from: \(tasksFileURL.path)")
         guard fileManager.fileExists(atPath: tasksFileURL.path) else {
+            print("[Debug] File does not exist at path: \(tasksFileURL.path)")
+            // For array types, return empty array instead of throwing error
             throw NSError(domain: "FileStorage", code: 404, userInfo: [NSLocalizedDescriptionKey: "File not found"])
         }
         let data = try Data(contentsOf: tasksFileURL)
@@ -56,12 +77,22 @@ class UserDefaultsPersistent<T: Codable>: DataPersistent {
 
 // Local storage implementation
 class LocalTaskStorage: TaskStorage {   
-    private let storage: any DataPersistent<[TaskItem]>
+    private let defaultsStorage: any DataPersistent<[TaskItem]> = UserDefaultsPersistent<[TaskItem]>(STORAGE_KEY)
+    private let fileStorage: any DataPersistent<[TaskItem]> = FilePersistent<[TaskItem]>()
+
     // TODO: remove this once remote storage is fully implemented
     private let remoteStorage: RemoteTaskStorage = RemoteTaskStorage()
     
-    init(storage: (any DataPersistent<[TaskItem]>)? = nil) {
-        self.storage = storage ?? UserDefaultsPersistent<[TaskItem]>(STORAGE_KEY)
+    init() {
+    }
+
+    private var storage: any DataPersistent<[TaskItem]> {
+        switch StorageType.current {
+        case .userDefaults:
+            return defaultsStorage
+        case .file:
+            return fileStorage
+        }
     }
     
     private func loadAllTasks() async throws -> [TaskItem] {

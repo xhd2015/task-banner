@@ -29,22 +29,29 @@ struct task_spannerApp: App {
     @StateObject private var appState = AppState()
     
     var body: some Scene {
-        Settings {
-            FileImporterView()
-                .environmentObject(taskManager)
-                .environmentObject(appState)
-                .frame(width: 0, height: 0)
-                .hidden()
-        }
-        .windowResizability(.contentSize)
-        .defaultSize(width: 0, height: 0)
-        
         MenuBarExtra("Task Spanner", systemImage: "list.clipboard") {
             TaskListView()
                 .environmentObject(taskManager)
                 .environmentObject(appState)
         }
         .menuBarExtraStyle(.window)
+        
+        Settings {
+            SettingsView()
+                .environmentObject(taskManager)
+        }
+        
+        #if os(macOS)
+        WindowGroup("FileImporter") {
+            FileImporterView()
+                .environmentObject(taskManager)
+                .environmentObject(appState)
+                .frame(width: 0, height: 0)
+                .hidden()
+        }
+        .windowStyle(.hiddenTitleBar)
+        .defaultSize(width: 0, height: 0)
+        #endif
     }
 }
 
