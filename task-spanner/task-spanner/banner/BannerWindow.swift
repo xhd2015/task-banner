@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 
+// this is merely a placeholder, not a real window
 class BannerWindow: NSWindow {
     init() {
         let screenSize = NSScreen.main?.visibleFrame ?? .zero

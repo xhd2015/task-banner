@@ -39,6 +39,64 @@ class RouteManager: ObservableObject {
     }
 }
 
+// Add these view components before BannerView
+private struct ResizeHandle: View {
+    @Binding var bannerWidth: CGFloat
+    @Binding var isResizing: Bool
+    
+    var body: some View {
+        Rectangle()
+            .fill(Color.clear)
+            .frame(width: 4)
+            .contentShape(Rectangle())
+            .onHover { hovering in
+                if hovering {
+                    NSCursor.resizeLeftRight.push()
+                } else {
+                    NSCursor.pop()
+                }
+            }
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        isResizing = true
+                        let delta = value.translation.width
+                        bannerWidth = max(300, min(800, bannerWidth + delta))
+                    }
+                    .onEnded { _ in
+                        isResizing = false
+                        // Save the banner width to UserDefaults when resizing ends
+                        UserDefaults.standard.set(bannerWidth, forKey: BANNER_WIDTH_KEY)
+                    }
+            )
+    }
+}
+
+private struct BannerContentView: View {
+    @EnvironmentObject var routeManager: RouteManager
+    let task: TaskItem?
+    @Binding var editingTaskId: Int64?
+    @Binding var editingText: String
+    @FocusState.Binding var isEditing: Bool
+    let filteredTasks: [TaskItem]
+    
+    var body: some View {
+        if let taskId = routeManager.current.params.taskId {
+            if let task = task {
+                TaskDetailView(task: task)
+                    .environmentObject(routeManager)
+                    .transition(.move(edge: .trailing))
+            } else {
+                Text("Task not found")
+                    .foregroundColor(.secondary)
+            }
+        } else {
+            Text("Invalid task ID")
+                .foregroundColor(.secondary)
+        }
+    }
+}
+
 struct BannerView: View {
     @EnvironmentObject var taskManager: TaskManager
     @StateObject private var routeManager = RouteManager()
@@ -49,6 +107,8 @@ struct BannerView: View {
     @State private var recentlyFinishedTasks: Set<Int64> = []
     @State private var mode: TaskMode = .work
     @State private var isCollapsed: Bool = false
+    @State private var bannerWidth: CGFloat = UserDefaults.standard.double(forKey: BANNER_WIDTH_KEY) > 0 ? UserDefaults.standard.double(forKey: BANNER_WIDTH_KEY) : 300
+    @State private var isResizing: Bool = false
     @FocusState private var isEditing: Bool
     
     var filteredTasks: [TaskItem] {
@@ -61,7 +121,6 @@ struct BannerView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Replace the top bar implementation with the new component
             BannerTopBar(
                 isCollapsed: $isCollapsed,
                 showOnlyUnfinished: $showOnlyUnfinished,
@@ -72,33 +131,30 @@ struct BannerView: View {
             if !isCollapsed {
                 Group {
                     if routeManager.current.path == .detail {
-                        if let taskId = routeManager.current.params.taskId {
-                            if let task = findTask(id: taskId) {
-                                TaskDetailView(task: task)
-                                    .environmentObject(routeManager)
-                                    .transition(.move(edge: .trailing))
-                            } else {
-                                Text("Task not found")
-                                    .foregroundColor(.secondary)
-                            }
-                        } else {
-                            Text("Invalid task ID")
-                                .foregroundColor(.secondary)
-                        }
+                        BannerContentView(
+                            task: findTask(id: routeManager.current.params.taskId ?? 0),
+                            editingTaskId: $editingTaskId,
+                            editingText: $editingText,
+                            isEditing: $isEditing,
+                            filteredTasks: filteredTasks
+                        )
+                        .environmentObject(routeManager)
                     } else {
                         ScrollView(.vertical, showsIndicators: true) {
                             VStack(spacing: 0) {
                                 ForEach(filteredTasks) { task in
-                                    TaskItemWithSubtasks(task: task, 
-                                        editingTaskId: $editingTaskId, 
-                                        editingText: $editingText, 
+                                    TaskItemWithSubtasks(
+                                        task: task,
+                                        editingTaskId: $editingTaskId,
+                                        editingText: $editingText,
                                         isEditing: $isEditing,
                                         selectedTaskId: .constant(nil),
                                         onTaskSelect: { taskId in
                                             withAnimation {
                                                 routeManager.navigateToDetail(taskId: taskId)
                                             }
-                                        })
+                                        }
+                                    )
                                 }
                             }
                             .padding(.vertical, 8)
@@ -109,24 +165,31 @@ struct BannerView: View {
             }
         }
         .environment(\.showOnlyUnfinished, showOnlyUnfinished)
-        .frame(maxWidth: 400, minHeight: isCollapsed ? 1 : 300, maxHeight: isCollapsed ? 50 : 600)
+        .frame(width: bannerWidth)
+        .frame(minHeight: isCollapsed ? 1 : 300)
+        .frame(maxHeight: isCollapsed ? 50 : 600)
         .background {
             RoundedRectangle(cornerRadius: 16)
                 .fill(.ultraThinMaterial)
         }
+        .overlay(alignment: .trailing) {
+            ResizeHandle(bannerWidth: $bannerWidth, isResizing: $isResizing)
+        }
         .padding(.horizontal)
         .opacity(isDragging ? 0.7 : 1.0)
         .animation(.easeInOut(duration: 0.2), value: isDragging)
-        .animation(.easeInOut(duration: 0.2), value: routeManager.current.path)
         .simultaneousGesture(
             DragGesture()
                 .onChanged { _ in
-                    isDragging = true
+                    if !isResizing {
+                        isDragging = true
+                    }
                 }
                 .onEnded { _ in
                     isDragging = false
                 }
         )
+        .animation(.easeInOut(duration: 0.2), value: routeManager.current.path)
         .onAppear {
             print("BannerView appeared with route: \(routeManager.current.path), params: \(routeManager.current.params)")
         }

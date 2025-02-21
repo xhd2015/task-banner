@@ -84,6 +84,16 @@ When combined with the @Published property wrapper in a class conforming to Obse
 ## var vs let
 In Swift, var and let are used to declare variables and constants, respectively.
 
+## extension View
+Add extra modifier.
+
+Scope: 
+- default(interal): applies to all views in the same module.
+- public: to all modules
+- fileprivate: to current file
+- private: to current scope
+
+
 # Interesting Cursor
 
 ## Cursor can draw text-based image!
