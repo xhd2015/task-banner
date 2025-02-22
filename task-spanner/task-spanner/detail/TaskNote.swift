@@ -51,7 +51,7 @@ struct TaskNote: View {
                 .font(.headline)
             
             HStack {
-                TextField("Add a note...", text: $newNote)
+                TextField("Add a note...", text: $newNote, onCommit: addNote)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                 
                 IconButton(

@@ -93,6 +93,12 @@ Scope:
 - fileprivate: to current file
 - private: to current scope
 
+## Parameter label
+```swift
+findAdjacentTask(in tasks: [TaskItem], taskId: Int64, direction: MoveDirection) -> TaskItem?
+```
+
+The `in` is used by caller, and `tasks` is used inside the function body.
 
 # Interesting Cursor
 

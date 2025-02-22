@@ -73,8 +73,9 @@ class TaskManager: ObservableObject, @unchecked Sendable {
         bannerWindow.contentView = hostingView
         self.bannerWindow = bannerWindow
         
-        // Initially hide the window since there are no tasks
-        bannerWindow.orderOut(nil)
+        // display immediately
+        self.bannerWindow?.orderFront(nil)
+        self.bannerWindow?.level = .statusBar
     }
     
     // Add function to switch mode
@@ -249,12 +250,22 @@ class TaskManager: ObservableObject, @unchecked Sendable {
     }
 
     private func findAdjacentTask(in tasks: [TaskItem], taskId: Int64, direction: MoveDirection) -> TaskItem? {
+        // First try to find at current level
         if let index = tasks.firstIndex(where: { $0.id == taskId }) {
             let newIndex = direction == .up ? index - 1 : index + 1
             if newIndex >= 0 && newIndex < tasks.count {
                 return tasks[newIndex]
             }
+            return nil
         }
+        
+        // If not found at current level, search in subtasks
+        for task in tasks {
+            if let found = findAdjacentTask(in: task.subTasks, taskId: taskId, direction: direction) {
+                return found
+            }
+        }
+        
         return nil
     }
     
@@ -266,15 +277,26 @@ class TaskManager: ObservableObject, @unchecked Sendable {
 
         // update tasks array
         func moveTaskRecursively(in tasks: inout [TaskItem], id: Int64, direction: MoveDirection) -> Bool {
+            // First try at current level
             for i in tasks.indices {
                 if tasks[i].id == id {
                     let newIndex = direction == .up ? i - 1 : i + 1
                     if newIndex >= 0 && newIndex < tasks.count {
+                        print("moveTaskRecursively: swapping tasks[\(i)]=\(tasks[i].title) with tasks[\(newIndex)]=\(tasks[newIndex].title)")
                         tasks.swapAt(i, newIndex)
                         return true
                     }
+                    return false // Found but can't move (at boundary)
                 }
             }
+            
+            // If not found at current level, try in each subtask
+            for i in tasks.indices {
+                if moveTaskRecursively(in: &tasks[i].subTasks, id: id, direction: direction) {
+                    return true
+                }
+            }
+            
             return false
         }
 

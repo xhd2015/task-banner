@@ -7,3 +7,5 @@
 /server/tasks.json
 /frontend/node_modules
 /frontend/build
+
+__debug_bin*
