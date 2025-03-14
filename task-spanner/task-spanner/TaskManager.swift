@@ -103,7 +103,7 @@ class TaskManager: ObservableObject, @unchecked Sendable {
                         func addToParent(in tasks: inout [TaskItem]) -> Bool {
                             for i in tasks.indices {
                                 if tasks[i].id == parentId {
-                                    tasks[i].subTasks.append(savedTask)
+                                    tasks[i].subTasks.insert(savedTask, at: 0)
                                     return true
                                 }
                                 if addToParent(in: &tasks[i].subTasks) {
@@ -114,8 +114,8 @@ class TaskManager: ObservableObject, @unchecked Sendable {
                         }
                         _ = addToParent(in: &self.tasks)
                     } else {
-                        // No parent ID, add to root tasks
-                        self.tasks.append(savedTask)
+                        // No parent ID, add to root tasks at the beginning
+                        self.tasks.insert(savedTask, at: 0)
                     }
                     self.updateBannerVisibility()
                 }

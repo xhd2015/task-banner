@@ -27,3 +27,7 @@ For your specific case with Swift, Go, and TypeScript, I would recommend Protoco
 - It has good performance characteristics
 - It supports both REST and gRPC protocols
 ```
+
+
+# Add to head
+research first: task-spanner/task-spanner is for MacOS,server is for backend. I want to change the task adding logic: when a new item is added, it should be insert into head, not append to tail. tell me how you will modify code in task-spanner/task-spanner and server to achieve this. no test needed, I will test myself.

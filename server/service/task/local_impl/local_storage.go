@@ -145,7 +145,7 @@ func (s *LocalStorage) AddTask(inputTask *model.TaskItem) (*model.TaskItem, erro
 		addSubTask = func(tasks []*model.TaskItem) []*model.TaskItem {
 			for i, t := range tasks {
 				if t.ID == task.ParentID {
-					tasks[i].SubTasks = append(tasks[i].SubTasks, task)
+					tasks[i].SubTasks = append([]*model.TaskItem{task}, tasks[i].SubTasks...)
 					found = true
 					return tasks
 				}
@@ -158,7 +158,7 @@ func (s *LocalStorage) AddTask(inputTask *model.TaskItem) (*model.TaskItem, erro
 			return nil, errors.New("parent task not found")
 		}
 	} else {
-		tasks = append(tasks, task)
+		tasks = append([]*model.TaskItem{task}, tasks...)
 	}
 
 	err = s.writeTasks(tasks)
