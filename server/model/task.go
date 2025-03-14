@@ -12,8 +12,9 @@ const (
 type TaskStatus string
 
 const (
-	TaskStatusCreated TaskStatus = "created"
-	TaskStatusDone    TaskStatus = "done"
+	TaskStatusCreated  TaskStatus = "created"
+	TaskStatusDone     TaskStatus = "done"
+	TaskStatusArchived TaskStatus = "archived"
 )
 
 type SwiftTimestamp float64

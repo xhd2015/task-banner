@@ -4,6 +4,7 @@ import Foundation
 enum TaskStatus: String, Codable {
     case created
     case done
+    case archived
 }
 
 struct TaskItem: Identifiable, Codable {

@@ -2,7 +2,7 @@ import SwiftUI
 
 struct BannerTopBar: View {
     @Binding var isCollapsed: Bool
-    @Binding var showOnlyUnfinished: Bool
+    @Binding var viewMode: BannerView.TaskViewMode
     @Binding var mode: TaskMode
     @EnvironmentObject var routeManager: RouteManager
     
@@ -19,8 +19,22 @@ struct BannerTopBar: View {
                 )
             } else {
                 IconButton(
-                    systemName: showOnlyUnfinished ? "checklist.unchecked" : "checklist",
-                    action: { showOnlyUnfinished.toggle() }
+                    systemName: {
+                        switch viewMode {
+                        case .unfinished: return "checklist.unchecked"
+                        case .all: return "checklist"
+                        case .archived: return "archivebox"
+                        }
+                    }(),
+                    action: {
+                        withAnimation {
+                            switch viewMode {
+                            case .unfinished: viewMode = .all
+                            case .all: viewMode = .archived
+                            case .archived: viewMode = .unfinished
+                            }
+                        }
+                    }
                 )
             }
             

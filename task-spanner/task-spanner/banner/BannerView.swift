@@ -103,7 +103,15 @@ struct BannerView: View {
     @State private var isDragging: Bool = false
     @State private var editingTaskId: Int64? = nil
     @State private var editingText: String = ""
-    @State private var showOnlyUnfinished: Bool = true
+    
+    // TaskViewMode enum for view filtering
+    enum TaskViewMode {
+        case unfinished  // Show only unfinished tasks (default)
+        case all         // Show all active tasks
+        case archived    // Show only archived tasks
+    }
+    
+    @State private var viewMode: TaskViewMode = .unfinished
     @State private var recentlyFinishedTasks: Set<Int64> = []
     @State private var mode: TaskMode = .work
     @State private var isCollapsed: Bool = false
@@ -112,18 +120,32 @@ struct BannerView: View {
     @FocusState private var isEditing: Bool
     
     var filteredTasks: [TaskItem] {
-        showOnlyUnfinished ? 
-            taskManager.rootTasks.filter { task in
+        switch viewMode {
+        case .unfinished:
+            return taskManager.rootTasks.filter { task in
                 filterUnfinishedTasks(task) || recentlyFinishedTasks.contains(task.id)
-            } :
-            taskManager.rootTasks
+            }
+        case .all:
+            return taskManager.rootTasks.filter { task in
+                task.status != .archived  // Filter out archived tasks
+            }
+        case .archived:
+            return taskManager.rootTasks.filter { task in
+                task.status == .archived
+            }
+        }
+    }
+    
+    // Computed property for backward compatibility
+    var showOnlyUnfinished: Bool {
+        viewMode == .unfinished
     }
     
     var body: some View {
         VStack(spacing: 0) {
             BannerTopBar(
                 isCollapsed: $isCollapsed,
-                showOnlyUnfinished: $showOnlyUnfinished,
+                viewMode: $viewMode,
                 mode: $mode
             )
             .environmentObject(routeManager)
@@ -165,6 +187,7 @@ struct BannerView: View {
             }
         }
         .environment(\.showOnlyUnfinished, showOnlyUnfinished)
+        .environment(\.taskViewMode, viewMode)
         .frame(width: bannerWidth)
         .frame(minHeight: isCollapsed ? 1 : 300)
         .frame(maxHeight: isCollapsed ? 50 : 600)
@@ -215,6 +238,9 @@ struct BannerView: View {
     
     // Recursively filter tasks and their subtasks
     private func filterUnfinishedTasks(_ task: TaskItem) -> Bool {
+        if task.status == .archived {
+            return false
+        }
         if task.status == .created || recentlyFinishedTasks.contains(task.id) {
             return true
         }
@@ -278,6 +304,9 @@ private struct TaskItemWithSubtasks: View {
     
     // Recursively filter tasks and their subtasks
     private func filterUnfinishedTasks(_ task: TaskItem) -> Bool {
+        if task.status == .archived {
+            return false
+        }
         if task.status == .created || recentlyFinishedTasks.contains(task.id) {
             return true
         }
@@ -290,10 +319,20 @@ private struct ShowOnlyUnfinishedKey: EnvironmentKey {
     static let defaultValue: Bool = false
 }
 
+// Create an environment key for the task view mode
+private struct TaskViewModeKey: EnvironmentKey {
+    static let defaultValue: BannerView.TaskViewMode = .unfinished
+}
+
 extension EnvironmentValues {
     var showOnlyUnfinished: Bool {
         get { self[ShowOnlyUnfinishedKey.self] }
         set { self[ShowOnlyUnfinishedKey.self] = newValue }
+    }
+    
+    var taskViewMode: BannerView.TaskViewMode {
+        get { self[TaskViewModeKey.self] }
+        set { self[TaskViewModeKey.self] = newValue }
     }
 }
 

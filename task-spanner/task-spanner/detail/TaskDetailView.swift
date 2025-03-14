@@ -27,14 +27,18 @@ struct TaskDetailView: View {
     private var taskHeaderView: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top, spacing: 12) {
-                Image(systemName: task.status == .done ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(task.status == .done ? .green : .blue)
+                Image(systemName: task.status == .archived ? "archivebox.fill" : 
+                               (task.status == .done ? "checkmark.circle.fill" : "circle"))
+                    .foregroundColor(task.status == .archived ? .gray :
+                                    (task.status == .done ? .green : .blue))
                     .font(.title2)
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(task.title)
                         .font(.headline)
-                        .foregroundColor(task.status == .done ? .secondary : .primary)
+                        .foregroundColor(task.status == .archived ? .gray :
+                                        (task.status == .done ? .secondary : .primary))
+                        .italic(task.status == .archived)
                     
                     Text(relativeTimeString(from: task.startTime))
                         .font(.caption)
@@ -42,12 +46,31 @@ struct TaskDetailView: View {
                 }
                 
                 Spacer()
+                
+                // Archive/Unarchive Button
+                Button(action: toggleArchive) {
+                    Label(
+                        task.status == .archived ? "Unarchive" : "Archive",
+                        systemImage: task.status == .archived ? "tray.and.arrow.up" : "archivebox"
+                    )
+                    .foregroundColor(task.status == .archived ? .blue : .gray)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
             }
         }
         .frame(maxWidth: .infinity)
         .padding()
         .background(Color.secondary.opacity(0.1))
         .cornerRadius(8)
+    }
+    
+    // Function to toggle archive status
+    private func toggleArchive() {
+        let newStatus: TaskStatus = task.status == .archived ? .created : .archived
+        Task {
+            try? await taskManager.updateTaskStatus(task, newStatus: newStatus)
+        }
     }
     
     private var subtasksView: some View {

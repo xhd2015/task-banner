@@ -1,0 +1,15 @@
+---
+description: Project guidelines
+globs: 
+alwaysApply: true
+---
+# About this project
+This is a task management App.
+
+# Project structure
+- task-spanner/task-spanner    a MacOS app
+- server                       backend APIs
+
+
+Other legacy directies(do not touch them)
+- frontend     front end pages

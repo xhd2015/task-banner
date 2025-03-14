@@ -114,17 +114,23 @@ struct BannerItemView: View {
                 }
                 
                 IconButton(
-                    systemName: task.status == .done || recentlyFinishedTasks.contains(task.id) ? "checkmark.square.fill" : "square",
+                    systemName: task.status == .archived ? "archivebox.fill" :
+                              (task.status == .done || recentlyFinishedTasks.contains(task.id) ? "checkmark.square.fill" : "square"),
                     action: toggleStatus,
-                    color: task.status == .done || recentlyFinishedTasks.contains(task.id) ? .green : .primary,
+                    color: task.status == .archived ? .gray :
+                          (task.status == .done || recentlyFinishedTasks.contains(task.id) ? .green : .primary),
                     addTrailingPadding: false
                 )
             }
             
             Text(task.title)
-                .foregroundColor(task.status == .done || recentlyFinishedTasks.contains(task.id) ? .secondary : .primary)
+                .foregroundColor(
+                    task.status == .archived ? .gray :
+                    task.status == .done || recentlyFinishedTasks.contains(task.id) ? .secondary : .primary
+                )
                 .lineLimit(1)
                 .strikethrough(task.status == .done || recentlyFinishedTasks.contains(task.id))
+                .italic(task.status == .archived)
             
             Spacer()
             
@@ -233,6 +239,11 @@ struct BannerItemView: View {
     }
     
     private func toggleStatus() {
+        // Skip toggling for archived tasks
+        if task.status == .archived {
+            return
+        }
+        
         let newStatus: TaskStatus = task.status == .done ? .created : .done
         if newStatus == .done && showOnlyUnfinished {
             recentlyFinishedTasks.insert(task.id)
@@ -242,7 +253,7 @@ struct BannerItemView: View {
                     try? await taskManager.updateTaskStatus(task, newStatus: newStatus)
                 }
             }
-        }else {
+        } else {
             // directly update status
             Task {
                 try? await taskManager.updateTaskStatus(task, newStatus: newStatus)

@@ -14,6 +14,8 @@ enum TaskStatus {
   TASK_STATUS_CREATED = 0;
   // Task is marked as completed
   TASK_STATUS_DONE = 1;
+  // Task is archived for historical reference
+  TASK_STATUS_ARCHIVED = 2;
 }
 
 // Task represents a single task item with optional subtasks
